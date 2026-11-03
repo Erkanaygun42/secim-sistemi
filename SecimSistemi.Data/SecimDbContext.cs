@@ -25,6 +25,8 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
     public DbSet<Sonuc> Sonuclar => Set<Sonuc>();
     public DbSet<OyOzeti> OyOzetleri => Set<OyOzeti>();
 
+    public DbSet<Yukleme> Yuklemeler => Set<Yukleme>();
+
     /// <summary>PostgreSQL'in ICU Türkçe sıralaması: C &lt; Ç, I &lt; İ, O &lt; Ö, S &lt; Ş, U &lt; Ü.</summary>
     public const string TurkceSiralama = "tr-x-icu";
 
@@ -42,6 +44,8 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
         configurationBuilder.Properties<MahalleKoyTuru>().HaveConversion<string>().HaveMaxLength(20);
         configurationBuilder.Properties<DspDurumu>().HaveConversion<string>().HaveMaxLength(30);
         configurationBuilder.Properties<EslemeTuru>().HaveConversion<string>().HaveMaxLength(20);
+        configurationBuilder.Properties<YuklemeDurumu>().HaveConversion<string>().HaveMaxLength(20);
+        configurationBuilder.Properties<KontrolSonucu>().HaveConversion<string>().HaveMaxLength(20);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

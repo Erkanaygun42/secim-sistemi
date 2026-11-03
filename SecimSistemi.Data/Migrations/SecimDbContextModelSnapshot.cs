@@ -558,6 +558,90 @@ namespace SecimSistemi.Data.Migrations
                         });
                 });
 
+            modelBuilder.Entity("SecimSistemi.Domain.Yukleme", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DosyaAdi")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<long?>("DspOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Durum")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("IlceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("KontrolDosyasiSha256")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<string>("KontrolSonucu")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("MahalleSayisi")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OyTuru")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("SandikSayisi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SatirSayisi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SecimId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<long>("ToplamOy")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("YuklenmeZamani")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IlceId");
+
+                    b.HasIndex("Sha256")
+                        .IsUnique();
+
+                    b.HasIndex("SecimId", "OyTuru", "IlceId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Yuklemeler_Aktif")
+                        .HasFilter("\"Durum\" = 'Aktif'");
+
+                    b.ToTable("Yuklemeler", t =>
+                        {
+                            t.HasCheckConstraint("CK_Yuklemeler_Sayilar", "\"SatirSayisi\" >= 0 AND \"SandikSayisi\" >= 0 AND \"MahalleSayisi\" >= 0 AND \"ToplamOy\" >= 0 AND COALESCE(\"DspOyu\", 0) >= 0");
+
+                            t.HasCheckConstraint("CK_Yuklemeler_Sha256", "\"Sha256\" ~ '^[0-9a-f]{64}$'");
+                        });
+                });
+
             modelBuilder.Entity("SecimSistemi.Domain.Aday", b =>
                 {
                     b.HasOne("SecimSistemi.Domain.Il", "Il")
@@ -804,6 +888,25 @@ namespace SecimSistemi.Data.Migrations
                     b.Navigation("Parti");
 
                     b.Navigation("Sandik");
+
+                    b.Navigation("Secim");
+                });
+
+            modelBuilder.Entity("SecimSistemi.Domain.Yukleme", b =>
+                {
+                    b.HasOne("SecimSistemi.Domain.Ilce", "Ilce")
+                        .WithMany()
+                        .HasForeignKey("IlceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SecimSistemi.Domain.Secim", "Secim")
+                        .WithMany()
+                        .HasForeignKey("SecimId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ilce");
 
                     b.Navigation("Secim");
                 });
