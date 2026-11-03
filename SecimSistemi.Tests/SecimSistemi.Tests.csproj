@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SecimSistemi.Domain\SecimSistemi.Domain.csproj" />
     <ProjectReference Include="..\SecimSistemi.Data\SecimSistemi.Data.csproj" />
+    <ProjectReference Include="..\SecimSistemi.Importer\SecimSistemi.Importer.csproj" />
   </ItemGroup>
 
 </Project>

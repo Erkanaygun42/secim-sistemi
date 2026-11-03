@@ -23,12 +23,14 @@
 | SecimSistemi.Tests | xunit | Toplam kontrolleri ve hesaplama kurallarının testleri |
 | SecimSistemi.Web | blazor | Panolar, raporlar, PDF/Excel çıktısı, kullanıcı girişi |
 
-Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain ve Data.
+Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain, Data ve Importer.
 
 ## Veri modeli kuralları
 - Sonuçlar "uzun" biçimde tutulur: bölge, seçim, oy türü, parti ya da aday, oy sayısı. Yeni parti veya seçim tablo yapısını değiştirmez.
 - Sonuç hangi düzeyde geldiyse orada saklanır: 2009 sonrası sandık, 1991–2007 ilçe düzeyinde. Karşılaştırmalar iki seçimin ortak olduğu en ince düzeyde yapılır.
 - Bölge hiyerarşisi: Il › Ilce › MahalleKoy › Sandik. Il, Ilce ve MahalleKoy kalıcı koda sahiptir; birleşen, bölünen ya da yeni kurulan birimler eşleştirme tablosuyla bağlanır.
+- İlçe kodu şimdilik geçicidir: plaka ve ilçe adı (`34-ESENYURT`). Resmî koda geçiş ileride eşleme/migration ile yapılacak.
+- Parti ve bağımsız aday başlıkları `SecimSistemi.Importer/Tanimlar/basliklar.csv` dosyasında tanımlanır. Tanımsız başlık gelirse yükleme durur; başlık tahminle sınıflanmaz. Kontrol: `dotnet run --project SecimSistemi.Importer -- basliklari-denetle data/raw`.
 - Kodda ve arayüzde "muhtarlık" yerine "mahalle/köy" (`MahalleKoy`) kullanılır. YSK dosyalarındaki "Muhtarlık" sütunu mahalle/köy birimidir, muhtar seçimi değildir.
 - Oy türleri: belediye meclisi, il genel meclisi, belediye başkanı, büyükşehir başkanı, milletvekili, cumhurbaşkanı.
 - DSP'nin her seçimdeki durumu tutulur: kendi listesi, ittifak, başka partinin listesi, girmedi.
@@ -61,4 +63,4 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain 
 ## Plan
 - Yapım programı: https://claude.ai/artifact/DYnYkvecaSD9bQ7EuN43TJ
 - Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır; 1991–2007 il ve ilçe verisi Mart 2027'den sonra eklenir.
-- Şu an: Sprint 0 (kurulum ve çözüm iskeleti).
+- Şu an: Sprint 2 (veri yükleyici). Toplam kontrol dosyaları (`yil_yerel_oy-turu_istanbul-ilceler.xlsx`) henüz yok; okuyucuları dosyalar gelince gerçek yapıya göre yazılacak.

@@ -1,0 +1,156 @@
+# YSK dosyalarındaki sütun başlıklarının tanımı. Importer her yüklemede bu dosyayı okur.
+# Burada olmayan bir başlık gelirse yükleme durur ve bilinmeyen başlıkları listeler.
+#
+# Sütunlar (noktalı virgülle ayrılır):
+#   ham_ad     YSK dosyasındaki başlık. Büyük/küçük harf ve fazla boşluk önemli değil ("DEM Parti" = "DEM PARTİ").
+#   tur        parti | bagimsiz
+#   parti      (yalnızca parti) Uygulamadaki parti adı. Aynı partinin farklı başlıkları aynı adı yazar.
+#   baslangic  (yalnızca parti, isteğe bağlı) Eşlemenin geçerli olduğu ilk tarih, yyyy-aa-gg. Boşsa sınır yok.
+#   bitis      (yalnızca parti, isteğe bağlı) Eşlemenin geçerli olduğu son tarih, yyyy-aa-gg. Boşsa sınır yok.
+#   yil        (yalnızca bagimsiz) Seçim yılı.
+#   oy_turu    (yalnızca bagimsiz) belediye-meclisi | belediye-baskani | buyuksehir-baskani | il-genel-meclisi
+#
+# Kararlar:
+#   - 2014'teki "İP" İşçi Partisi'dir (2015'te adı Vatan Partisi oldu); İYİ Parti değildir. Bu yüzden 2014 sonrasında geçersiz.
+#   - İYİ Parti 2017-10-25'te kuruldu; daha önceki seçimlerde "İYİ PARTİ" başlığı tanınmaz.
+#   - Ardıl ya da benzer adlı partiler ayrı tutulur: ANAVATAN/ANAP, DTP/HDP/DEM PARTİ, DP/DYP, ABP/AB PARTİ.
+
+ham_ad;tur;parti;baslangic;bitis;yil;oy_turu
+
+# --- Partiler ---
+AB PARTİ;parti;AB PARTİ;;;;
+ABP;parti;ABP;;;;
+AK PARTİ;parti;AK PARTİ;;;;
+ANAP;parti;ANAP;;;;
+ANAVATAN;parti;ANAVATAN;;;;
+BBP;parti;BBP;;;;
+BTP;parti;BTP;;;;
+CHP;parti;CHP;;;;
+DEM PARTİ;parti;DEM PARTİ;;;;
+DEVA PARTİSİ;parti;DEVA PARTİSİ;;;;
+DP;parti;DP;;;;
+DSP;parti;DSP;;;;
+DTP;parti;DTP;;;;
+DYP;parti;DYP;;;;
+EMEP;parti;EMEP;;;;
+GELECEK PARTİSİ;parti;GELECEK PARTİSİ;;;;
+HAK-PAR;parti;HAK-PAR;;;;
+HDP;parti;HDP;;;;
+HEPAR;parti;HEPAR;;;;
+HKP;parti;HKP;;;;
+HÜDA PAR;parti;HÜDA PAR;;;;
+İP;parti;VATAN PARTİSİ;;2014-12-31;;
+İYİ PARTİ;parti;İYİ PARTİ;2017-10-25;;;
+LDP;parti;LDP;;;;
+MEMLEKET;parti;MEMLEKET;;;;
+MHP;parti;MHP;;;;
+MİLLET;parti;MİLLET;;;;
+MİLLİ YOL;parti;MİLLİ YOL;;;;
+OCAK;parti;OCAK;;;;
+ÖDP;parti;ÖDP;;;;
+SAADET;parti;SAADET;;;;
+SOL PARTİ;parti;SOL PARTİ;;;;
+TİP;parti;TİP;;;;
+TKH;parti;TKH;;;;
+TKP;parti;TKP;;;;
+VATAN PARTİSİ;parti;VATAN PARTİSİ;;;;
+YENİDEN REFAH;parti;YENİDEN REFAH;;;;
+YTP;parti;YTP;;;;
+YURT-P;parti;YURT-P;;;;
+ZAFER PARTİSİ;parti;ZAFER PARTİSİ;;;;
+
+# --- Bağımsız adaylar: 2009 ---
+MEHMET ŞÜKRÜ ENGİN;bagimsiz;;;;2009;belediye-baskani
+ABİDİN ORHAN PAK;bagimsiz;;;;2009;buyuksehir-baskani
+AHMET LACİN;bagimsiz;;;;2009;buyuksehir-baskani
+BURHAN EROL;bagimsiz;;;;2009;buyuksehir-baskani
+CİHAN AKDAŞ;bagimsiz;;;;2009;buyuksehir-baskani
+DURSUNALİ BACIOĞLU;bagimsiz;;;;2009;buyuksehir-baskani
+ERHAN TAŞ;bagimsiz;;;;2009;buyuksehir-baskani
+FATMA RAGİBE KANIKURU LOĞOĞLU;bagimsiz;;;;2009;buyuksehir-baskani
+MELEK ALTINTAŞ;bagimsiz;;;;2009;buyuksehir-baskani
+NURULLAH ÇOLAK;bagimsiz;;;;2009;buyuksehir-baskani
+SELAMETTİN TELLİOĞLU;bagimsiz;;;;2009;buyuksehir-baskani
+YAHYA GÜNEŞER;bagimsiz;;;;2009;buyuksehir-baskani
+YASİN KILAR;bagimsiz;;;;2009;buyuksehir-baskani
+
+# --- Bağımsız adaylar: 2014 ---
+KANİ ÖZTÜRK;bagimsiz;;;;2014;belediye-meclisi
+MEHMET ŞÜKRÜ ENGİN;bagimsiz;;;;2014;belediye-meclisi
+ENGİN EMRAH BİÇER;bagimsiz;;;;2014;belediye-baskani
+BURCU DENİZ;bagimsiz;;;;2014;buyuksehir-baskani
+CELAL ÇAM;bagimsiz;;;;2014;buyuksehir-baskani
+ELİF SELEN GÜLÜN;bagimsiz;;;;2014;buyuksehir-baskani
+ERDAL KARASU;bagimsiz;;;;2014;buyuksehir-baskani
+ERSİN BAŞ;bagimsiz;;;;2014;buyuksehir-baskani
+FATMA RAGİBE KANIKURU LOĞOĞLU;bagimsiz;;;;2014;buyuksehir-baskani
+GALİP İLHANER;bagimsiz;;;;2014;buyuksehir-baskani
+HALİT ASLAN;bagimsiz;;;;2014;buyuksehir-baskani
+KAYA MUTLU;bagimsiz;;;;2014;buyuksehir-baskani
+NİHAL KAYA;bagimsiz;;;;2014;buyuksehir-baskani
+ÖMER COŞKUN;bagimsiz;;;;2014;buyuksehir-baskani
+SÜLEYMAN GÖK;bagimsiz;;;;2014;buyuksehir-baskani
+ŞAFAK TANRIVERDİ;bagimsiz;;;;2014;buyuksehir-baskani
+ÜMİT KADİR ÖZDEMİR;bagimsiz;;;;2014;buyuksehir-baskani
+
+# --- Bağımsız adaylar: 2019 ---
+ABDULLAH HALUK ÇETİN;bagimsiz;;;;2019;belediye-baskani
+ABDULCELİL GÜLAP;bagimsiz;;;;2019;buyuksehir-baskani
+AHMET ÇÖRDÜK;bagimsiz;;;;2019;buyuksehir-baskani
+ALİ RIZA KANSIZ;bagimsiz;;;;2019;buyuksehir-baskani
+AYSEL TEKEREK;bagimsiz;;;;2019;buyuksehir-baskani
+BURAK KADIOĞLU;bagimsiz;;;;2019;buyuksehir-baskani
+BURHAN EROL;bagimsiz;;;;2019;buyuksehir-baskani
+DOĞAN DUMAN;bagimsiz;;;;2019;buyuksehir-baskani
+DURSUNALİ BACIOĞLU;bagimsiz;;;;2019;buyuksehir-baskani
+FATMA RAGİBE KANIKURU LOĞOĞLU;bagimsiz;;;;2019;buyuksehir-baskani
+GÜLDES ÖNKOYUN;bagimsiz;;;;2019;buyuksehir-baskani
+HALEF ALP;bagimsiz;;;;2019;buyuksehir-baskani
+HASAN ATASOY TORUN;bagimsiz;;;;2019;buyuksehir-baskani
+HAZER ORUÇ KAYA;bagimsiz;;;;2019;buyuksehir-baskani
+HÜSEYİN KARABULUT;bagimsiz;;;;2019;buyuksehir-baskani
+LÜTFÜ YILMAZ;bagimsiz;;;;2019;buyuksehir-baskani
+MEHMET CELAL BAYKARA;bagimsiz;;;;2019;buyuksehir-baskani
+MEHMET YILDIZ;bagimsiz;;;;2019;buyuksehir-baskani
+MEMET ALİ AYDOĞMUŞ;bagimsiz;;;;2019;buyuksehir-baskani
+MUHAMMET ALİ CANCA;bagimsiz;;;;2019;buyuksehir-baskani
+ORUÇ KARACIK;bagimsiz;;;;2019;buyuksehir-baskani
+ÖZGE AKMAN;bagimsiz;;;;2019;buyuksehir-baskani
+ÖZKAN MUSTAFA KÜÇÜKKURAL;bagimsiz;;;;2019;buyuksehir-baskani
+SEÇKİN İLKER;bagimsiz;;;;2019;buyuksehir-baskani
+VEDAT ÖZTÜRK;bagimsiz;;;;2019;buyuksehir-baskani
+
+# --- Bağımsız adaylar: 2024 ---
+FIRAT GÜNDÜZ;bagimsiz;;;;2024;belediye-meclisi
+ÜNAL KIRMIZITAŞ;bagimsiz;;;;2024;belediye-meclisi
+ERDOĞAN HORASAN;bagimsiz;;;;2024;belediye-baskani
+FEDAİ ŞİRİN;bagimsiz;;;;2024;belediye-baskani
+MERT MUHAMMED ÇEKİCİ;bagimsiz;;;;2024;belediye-baskani
+ŞEREFETTİN TAŞKULAK;bagimsiz;;;;2024;belediye-baskani
+ABDULLAH ARLİ;bagimsiz;;;;2024;buyuksehir-baskani
+ADEM BAYRAKTAR;bagimsiz;;;;2024;buyuksehir-baskani
+AHMET BİRİKMEN;bagimsiz;;;;2024;buyuksehir-baskani
+AHMET SOYTÜRK;bagimsiz;;;;2024;buyuksehir-baskani
+ATAKAN BOZYAYLA;bagimsiz;;;;2024;buyuksehir-baskani
+BİLEN AKPINAR;bagimsiz;;;;2024;buyuksehir-baskani
+BURAK EMRE ÇETİN;bagimsiz;;;;2024;buyuksehir-baskani
+CEMAL TARANCI;bagimsiz;;;;2024;buyuksehir-baskani
+FATMA RAGİBE KANIKURU LOĞOĞLU;bagimsiz;;;;2024;buyuksehir-baskani
+GALİP MENTEŞE;bagimsiz;;;;2024;buyuksehir-baskani
+GÜVEN AKICI;bagimsiz;;;;2024;buyuksehir-baskani
+HABİP AKSU;bagimsiz;;;;2024;buyuksehir-baskani
+HÜLYA KAVUZLU KARAMAN;bagimsiz;;;;2024;buyuksehir-baskani
+HÜSEYİN DURMAZ;bagimsiz;;;;2024;buyuksehir-baskani
+İSHAK AKBAY;bagimsiz;;;;2024;buyuksehir-baskani
+MEMET ALİ AYDOĞMUŞ;bagimsiz;;;;2024;buyuksehir-baskani
+MERVE KARATAŞ;bagimsiz;;;;2024;buyuksehir-baskani
+MİRHAT TEKİN BRUSK;bagimsiz;;;;2024;buyuksehir-baskani
+ORHAN ÇEBİ;bagimsiz;;;;2024;buyuksehir-baskani
+ÖMER KARVAN;bagimsiz;;;;2024;buyuksehir-baskani
+POLAT ERDOĞAN;bagimsiz;;;;2024;buyuksehir-baskani
+SENA ELEST AKINCI;bagimsiz;;;;2024;buyuksehir-baskani
+UĞUR ETLİK;bagimsiz;;;;2024;buyuksehir-baskani
+VEDAT ÖZTÜRK;bagimsiz;;;;2024;buyuksehir-baskani
+VEDAT TAYLAN YILDIZ;bagimsiz;;;;2024;buyuksehir-baskani
+YAŞAR POLAT;bagimsiz;;;;2024;buyuksehir-baskani
+YÜKSEL ÖZDEN;bagimsiz;;;;2024;buyuksehir-baskani

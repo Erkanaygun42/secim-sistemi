@@ -8,7 +8,10 @@ public class Il
     public required string Ad { get; set; }
 }
 
-/// <summary>İlçe. <see cref="Kod"/> kalıcı koddur; hangi resmi kodun kullanılacağı Sprint 2'de belirlenecek.</summary>
+/// <summary>
+/// İlçe. <see cref="Kod"/> şimdilik geçicidir: plaka ve ilçe adı ("34-ESENYURT").
+/// Resmî ilçe koduna geçiş ileride eşleme/migration ile yapılacak.
+/// </summary>
 public class Ilce
 {
     public int Id { get; set; }
