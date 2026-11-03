@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SecimSistemi.Data.Gorunumler;
 using SecimSistemi.Domain;
 
 namespace SecimSistemi.Data;
@@ -29,6 +30,11 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
 
     public DbSet<Yukleme> Yuklemeler => Set<Yukleme>();
 
+    // Görünümler (yalnızca okunur; migration: AnalizGorunumleri).
+    public DbSet<MahalleKarnesiSatiri> MahalleKarnesi => Set<MahalleKarnesiSatiri>();
+    public DbSet<SecimDegisimiSatiri> SecimDegisimi => Set<SecimDegisimiSatiri>();
+    public DbSet<AdayEtkisiSatiri> AdayEtkisi => Set<AdayEtkisiSatiri>();
+
     /// <summary>PostgreSQL'in ICU Türkçe sıralaması: C &lt; Ç, I &lt; İ, O &lt; Ö, S &lt; Ş, U &lt; Ü.</summary>
     public const string TurkceSiralama = "tr-x-icu";
 
@@ -53,6 +59,11 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SecimDbContext).Assembly);
+
+        // Anahtarsız görünüm varlıkları: EF bunlar için tablo oluşturmaz; görünümler migration'da elle yazılır.
+        modelBuilder.Entity<MahalleKarnesiSatiri>().HasNoKey().ToView("MahalleKarnesi");
+        modelBuilder.Entity<SecimDegisimiSatiri>().HasNoKey().ToView("SecimDegisimi");
+        modelBuilder.Entity<AdayEtkisiSatiri>().HasNoKey().ToView("AdayEtkisi");
 
         // Hiçbir silme işlemi bağlı kayıtları kendiliğinden silmesin: bir ili silmek
         // binlerce sonucu sessizce götürmemeli. Önce bağlı kayıtlar açıkça silinmeli.

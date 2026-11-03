@@ -1,20 +1,39 @@
 ﻿using SecimSistemi.Importer;
 using SecimSistemi.Importer.Aktarim;
 using SecimSistemi.Importer.Mahalleler;
+using SecimSistemi.Importer.Rapor;
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-var yenile = args.Contains("--yenile");
-var konumsal = args.Where(a => !a.StartsWith("--", StringComparison.Ordinal)).ToArray();
-var bilinmeyenSecenek = args.FirstOrDefault(a => a.StartsWith("--", StringComparison.Ordinal) && a != "--yenile");
-
 try
 {
-    if (bilinmeyenSecenek is not null)
-        throw new YuklemeHatasi($"Bilinmeyen seçenek: {bilinmeyenSecenek}");
+    // Seçenekler: --yenile (değersiz), --oy-turu <değer>. Geri kalanlar konumsal.
+    bool yenile = false;
+    string? oyTuru = null;
+    var liste = new List<string>();
+    for (int i = 0; i < args.Length; i++)
+    {
+        switch (args[i])
+        {
+            case "--yenile":
+                yenile = true;
+                break;
+            case "--oy-turu":
+                oyTuru = i + 1 < args.Length ? args[++i] : throw new YuklemeHatasi("--oy-turu bir değer ister (örnek belediye-meclisi).");
+                break;
+            case var s when s.StartsWith("--", StringComparison.Ordinal):
+                throw new YuklemeHatasi($"Bilinmeyen seçenek: {s}");
+            default:
+                liste.Add(args[i]);
+                break;
+        }
+    }
+    var konumsal = liste.ToArray();
 
     switch (konumsal.FirstOrDefault())
     {
+        case "rapor" when konumsal.Length == 3 && konumsal[1] == "erime":
+            return await RaporKomutlari.ErimeAsync(konumsal[2], oyTuru);
         case "yukle" when konumsal.Length == 2:
             return await AktarimKomutlari.YukleAsync([konumsal[1]], yenile);
         case "yukle-hepsi" when konumsal.Length == 2:
@@ -43,6 +62,8 @@ try
             Console.WriteLine("  mahalle listele <ilçe kodu>         Mahallelerin hangi seçimlerde göründüğü ve eşleme ipuçları");
             Console.WriteLine("  mahalle esleme-oner <ilçe kodu>     Ad benzerliğine göre öneriler Tanimlar/mahalle-eslemeleri.csv'ye eklenir (onaylı sayılmaz)");
             Console.WriteLine("  mahalle esleme-yukle <ilçe kodu>    Onaylı eşlemeleri yazar, karşılaştırma birimlerini yeniden kurar");
+            Console.WriteLine("  rapor erime <ilçe kodu> [--oy-turu belediye-meclisi|belediye-baskani|buyuksehir-baskani]");
+            Console.WriteLine("                                      2009 tabanlı erime raporu; csv'ler data/out altına yazılır");
             Console.WriteLine("  basliklari-denetle <klasör>         Başlıkları Tanimlar/basliklar.csv ile eşler (veritabanına dokunmaz)");
             Console.WriteLine("  incele <klasör> | ozet <klasör> | karsilastir <a.xlsx> <b.xlsx>");
             Console.WriteLine("--yenile: aynı seçim + oy türü + ilçe başka bir dosyayla yüklenmişse onun yerine geçer.");

@@ -31,6 +31,10 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
 - Bölge hiyerarşisi: Il › Ilce › MahalleKoy › Sandik. Il, Ilce ve MahalleKoy kalıcı koda sahiptir; birleşen, bölünen ya da yeni kurulan birimler eşleştirme tablosuyla bağlanır.
 - İlçe kodu şimdilik geçicidir: plaka ve ilçe adı (`34-ESENYURT`). Resmî koda geçiş ileride eşleme/migration ile yapılacak.
 - Parti ve bağımsız aday başlıkları `SecimSistemi.Importer/Tanimlar/basliklar.csv` dosyasında tanımlanır. Tanımsız başlık gelirse yükleme durur; başlık tahminle sınıflanmaz. Kontrol: `dotnet run --project SecimSistemi.Importer -- basliklari-denetle data/raw`.
+- Yıllar arası karşılaştırma "karşılaştırma birimi"nde yapılır: onaylı mahalle eşlemeleriyle (`SecimSistemi.Importer/Tanimlar/mahalle-eslemeleri.csv`, yalnızca `durum = onayli`) birbirine bağlanan mahalleler tek birimdir. Araç yalnızca öneri yazar; öneriler kullanıcı onaylamadan kullanılmaz.
+- DSP yalnızca kendi listesiyle girdiyse "pusulada" sayılır; pusulada değilse oy ve oranlar 0 değil boş (NULL) olur.
+- Analiz görünümleri (MahalleKarnesi, SecimDegisimi, AdayEtkisi) migration içinde SQL olarak yazılır. Bağlı oldukları tabloların sütunlarını değiştiren migration görünümleri önce silip sonra yeniden oluşturmalıdır.
+- Alınan kararlar gerekçesiyle `docs/kararlar.md` dosyasına yazılır.
 - Kodda ve arayüzde "muhtarlık" yerine "mahalle/köy" (`MahalleKoy`) kullanılır. YSK dosyalarındaki "Muhtarlık" sütunu mahalle/köy birimidir, muhtar seçimi değildir.
 - Oy türleri: belediye meclisi, il genel meclisi, belediye başkanı, büyükşehir başkanı, milletvekili, cumhurbaşkanı.
 - DSP'nin her seçimdeki durumu tutulur: kendi listesi, ittifak, başka partinin listesi, girmedi.
@@ -52,6 +56,9 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   - `dotnet test`
   - `dotnet run --project SecimSistemi.Web`
   - `dotnet ef migrations add <Ad> --project SecimSistemi.Data --startup-project SecimSistemi.Web`
+  - `dotnet run --project SecimSistemi.Importer -- yukle-hepsi data/raw`
+  - `dotnet run --project SecimSistemi.Importer -- mahalle listele|esleme-oner|esleme-yukle 34-ESENYURT`
+  - `dotnet run --project SecimSistemi.Importer -- rapor erime 34-ESENYURT [--oy-turu belediye-baskani]` (csv: `data/out`, git'e girmez)
 
 ## Pilot: İstanbul / Esenyurt
 - Pilot ilçe İstanbul/Esenyurt.
@@ -63,4 +70,6 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
 ## Plan
 - Yapım programı: https://claude.ai/artifact/DYnYkvecaSD9bQ7EuN43TJ
 - Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır; 1991–2007 il ve ilçe verisi Mart 2027'den sonra eklenir.
-- Şu an: Sprint 2 (veri yükleyici). Toplam kontrol dosyaları (`yil_yerel_oy-turu_istanbul-ilceler.xlsx`) henüz yok; okuyucuları dosyalar gelince gerçek yapıya göre yazılacak.
+- Sprint 2 (veri yükleyici) tamam. Toplam kontrol dosyaları (`yil_yerel_oy-turu_istanbul-ilceler.xlsx`) henüz yok; okuyucuları dosyalar gelince gerçek yapıya göre yazılacak.
+- Sprint 3 (mahalle analizi, erime raporu) tamam. Esenyurt'ta 2014–2019 arasında kurulan 23 mahallenin eşlemesi onay bekliyor; o zamana kadar her mahalle ayrı birim (docs/kararlar.md K6).
+- Sıradaki: Sprint 4 (sayfalar); görünümler ve `ErimeRaporuServisi` kullanılacak.

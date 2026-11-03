@@ -22,6 +22,176 @@ namespace SecimSistemi.Data.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("SecimSistemi.Data.Gorunumler.AdayEtkisiSatiri", b =>
+                {
+                    b.Property<decimal?>("AdayEtkisiPuan")
+                        .HasColumnType("numeric");
+
+                    b.Property<decimal?>("BaskanlikOrani")
+                        .HasColumnType("numeric");
+
+                    b.Property<long?>("BaskanlikOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("BaskanlikTuru")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("BirimAdi")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<int>("BirimId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BirimKod")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("IlceId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("MeclisOrani")
+                        .HasColumnType("numeric");
+
+                    b.Property<long?>("MeclisOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("OyFarki")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SecimId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateOnly>("Tarih")
+                        .HasColumnType("date");
+
+                    b.Property<int>("Yil")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("AdayEtkisi", (string)null);
+                });
+
+            modelBuilder.Entity("SecimSistemi.Data.Gorunumler.MahalleKarnesiSatiri", b =>
+                {
+                    b.Property<string>("BirimAdi")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<int>("BirimId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BirimKod")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("DspOrani")
+                        .HasColumnType("numeric");
+
+                    b.Property<long?>("DspOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("IlceId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OyTuru")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<bool>("PusuladaMi")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("SandikSayisi")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("SecimId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("SecimTuru")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("Tarih")
+                        .HasColumnType("date");
+
+                    b.Property<long>("ToplamOy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Yil")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("MahalleKarnesi", (string)null);
+                });
+
+            modelBuilder.Entity("SecimSistemi.Data.Gorunumler.SecimDegisimiSatiri", b =>
+                {
+                    b.Property<string>("BirimAdi")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<int>("BirimId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BirimKod")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("DspOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("IlceId")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("OncekiDspOyu")
+                        .HasColumnType("bigint");
+
+                    b.Property<decimal?>("OncekiOran")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("OncekiSecimId")
+                        .HasColumnType("integer");
+
+                    b.Property<long?>("OncekiToplamOy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("OncekiYil")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal?>("Oran")
+                        .HasColumnType("numeric");
+
+                    b.Property<long?>("OyFarki")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("OyTuru")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<decimal?>("PuanFarki")
+                        .HasColumnType("numeric");
+
+                    b.Property<int>("SecimId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ToplamOy")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Yil")
+                        .HasColumnType("integer");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("SecimDegisimi", (string)null);
+                });
+
             modelBuilder.Entity("SecimSistemi.Domain.Aday", b =>
                 {
                     b.Property<int>("Id")
