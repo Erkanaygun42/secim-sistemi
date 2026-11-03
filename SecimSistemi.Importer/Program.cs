@@ -7,66 +7,64 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 
 try
 {
-    // Seçenekler: --yenile (değersiz), --oy-turu <değer>. Geri kalanlar konumsal.
-    bool yenile = false;
-    string? oyTuru = null;
-    var liste = new List<string>();
-    for (int i = 0; i < args.Length; i++)
-    {
-        switch (args[i])
-        {
-            case "--yenile":
-                yenile = true;
-                break;
-            case "--oy-turu":
-                oyTuru = i + 1 < args.Length ? args[++i] : throw new YuklemeHatasi("--oy-turu bir değer ister (örnek belediye-meclisi).");
-                break;
-            case var s when s.StartsWith("--", StringComparison.Ordinal):
-                throw new YuklemeHatasi($"Bilinmeyen seçenek: {s}");
-            default:
-                liste.Add(args[i]);
-                break;
-        }
-    }
-    var konumsal = liste.ToArray();
+    var s = new Secenekler(args);
+    var k = s.Konumsal;
 
-    switch (konumsal.FirstOrDefault())
+    switch (k.FirstOrDefault())
     {
-        case "rapor" when konumsal.Length == 3 && konumsal[1] == "erime":
-            return await RaporKomutlari.ErimeAsync(konumsal[2], oyTuru);
-        case "yukle" when konumsal.Length == 2:
-            return await AktarimKomutlari.YukleAsync([konumsal[1]], yenile);
-        case "yukle-hepsi" when konumsal.Length == 2:
-            return await AktarimKomutlari.YukleHepsiAsync(konumsal[1], yenile);
-        case "mahalle" when konumsal.Length == 3 && konumsal[1] == "listele":
-            return await MahalleKomutlari.ListeleAsync(konumsal[2]);
-        case "mahalle" when konumsal.Length == 3 && konumsal[1] == "esleme-oner":
-            return await MahalleKomutlari.EslemeOnerAsync(konumsal[2]);
-        case "mahalle" when konumsal.Length == 3 && konumsal[1] == "esleme-yukle":
-            return await MahalleKomutlari.EslemeYukleAsync(konumsal[2]);
-        case "basliklari-denetle" when konumsal.Length == 2:
-            return BaslikDenetimi.Calistir(konumsal[1]);
-        case "incele" when konumsal.Length == 2:
-            Incele.Klasor(konumsal[1]);
+        case "rapor" when k.Count == 3 && k[1] == "erime":
+            return await RaporKomutlari.ErimeAsync(k[2], s.Deger("--oy-turu"), s.Esikler());
+        case "rapor" when k.Count == 3 && k[1] == "esik-dogrulama":
+            return await RaporKomutlari.EsikDogrulamaAsync(k[2], s.Esikler());
+        case "karar-talep" when k.Count == 2:
+            return await KararKomutlari.TalepAsync(k[1], s);
+        case "karar-onayla" when k.Count == 2:
+            return await KararKomutlari.OnaylaAsync(k[1], s);
+        case "karar-listele" when k.Count == 2:
+            return await KararKomutlari.ListeleAsync(k[1], s.Bayrak("--hepsi"));
+        case "yukle" when k.Count == 2:
+            return await AktarimKomutlari.YukleAsync([k[1]], s.Bayrak("--yenile"));
+        case "yukle-hepsi" when k.Count == 2:
+            return await AktarimKomutlari.YukleHepsiAsync(k[1], s.Bayrak("--yenile"));
+        case "mahalle" when k.Count == 3 && k[1] == "listele":
+            return await MahalleKomutlari.ListeleAsync(k[2], s.Esikler());
+        case "mahalle" when k.Count == 3 && k[1] == "esleme-oner":
+            return await MahalleKomutlari.EslemeOnerAsync(k[2]);
+        case "mahalle" when k.Count == 3 && k[1] == "esleme-yukle":
+            return await MahalleKomutlari.EslemeYukleAsync(k[2], s.Zorunlu("--kisi", "onaylı csv satırlarını karar tablosuna aktaran kişi"));
+        case "basliklari-denetle" when k.Count == 2:
+            return BaslikDenetimi.Calistir(k[1]);
+        case "incele" when k.Count == 2:
+            Incele.Klasor(k[1]);
             break;
-        case "ozet" when konumsal.Length == 2:
-            Incele.Ozet(konumsal[1]);
+        case "ozet" when k.Count == 2:
+            Incele.Ozet(k[1]);
             break;
-        case "karsilastir" when konumsal.Length == 3:
-            Incele.Karsilastir(konumsal[1], konumsal[2]);
+        case "karsilastir" when k.Count == 3:
+            Incele.Karsilastir(k[1], k[2]);
             break;
         default:
-            Console.WriteLine("Kullanım:");
-            Console.WriteLine("  yukle <dosya.xlsx> [--yenile]       Bir sandık dosyasını yükler");
-            Console.WriteLine("  yukle-hepsi <klasör> [--yenile]     Klasördeki bütün sandık dosyalarını yükler (kontrol dosyaları hariç)");
-            Console.WriteLine("  mahalle listele <ilçe kodu>         Mahallelerin hangi seçimlerde göründüğü ve eşleme ipuçları");
-            Console.WriteLine("  mahalle esleme-oner <ilçe kodu>     Ad benzerliğine göre öneriler Tanimlar/mahalle-eslemeleri.csv'ye eklenir (onaylı sayılmaz)");
-            Console.WriteLine("  mahalle esleme-yukle <ilçe kodu>    Onaylı eşlemeleri yazar, karşılaştırma birimlerini yeniden kurar");
-            Console.WriteLine("  rapor erime <ilçe kodu> [--oy-turu belediye-meclisi|belediye-baskani|buyuksehir-baskani]");
-            Console.WriteLine("                                      2009 tabanlı erime raporu; csv'ler data/out altına yazılır");
-            Console.WriteLine("  basliklari-denetle <klasör>         Başlıkları Tanimlar/basliklar.csv ile eşler (veritabanına dokunmaz)");
-            Console.WriteLine("  incele <klasör> | ozet <klasör> | karsilastir <a.xlsx> <b.xlsx>");
-            Console.WriteLine("--yenile: aynı seçim + oy türü + ilçe başka bir dosyayla yüklenmişse onun yerine geçer.");
+            Console.WriteLine("""
+                Kullanım:
+                  yukle <dosya.xlsx> [--yenile]           Bir sandık dosyasını yükler
+                  yukle-hepsi <klasör> [--yenile]         Klasördeki bütün sandık dosyalarını yükler (kontrol dosyaları hariç)
+                  mahalle listele <ilçe kodu>             Mahallelerin seçimlerdeki varlığı ve sınır durumu
+                  mahalle esleme-oner <ilçe kodu>         Ad benzerliği önerileri Tanimlar/mahalle-eslemeleri.csv'ye eklenir (onaylı sayılmaz)
+                  mahalle esleme-yukle <ilçe kodu> --kisi <ad>
+                                                          csv'deki onaylı satırları karar tablosuna aktarır, birimleri yeniden kurar
+                  karar-talep <ilçe kodu> --mahalle <kod> --gerekce "..." --kisi <ad> [--kaynak "..."]
+                              (--secim <yıl> --karar sabit|siniri-degisti) | (--esle <yeni kod> --tur bolunme|birlesme|ad-degisikligi|kod-degisikligi [--yururluk yyyy-aa-gg])
+                  karar-onayla <karar no> --kisi <ad> [--reddet] [--not "..."]
+                  karar-listele <ilçe kodu> [--hepsi]     Talepler ve geçerli kararlar (--hepsi: geçmiş dahil)
+                  rapor erime <ilçe kodu> [--oy-turu belediye-meclisi|belediye-baskani|buyuksehir-baskani]
+                                                          Erime raporu; csv'ler data/out altına yazılır
+                  rapor esik-dogrulama <ilçe kodu>        Onaylı insan kararlarıyla otomatik sınır tespitinin örtüşmesi
+                  basliklari-denetle <klasör>             Başlıkları Tanimlar/basliklar.csv ile eşler (veritabanına dokunmaz)
+                  incele <klasör> | ozet <klasör> | karsilastir <a.xlsx> <b.xlsx>
+                Sınır eşikleri (mahalle listele, rapor erime, rapor esik-dogrulama):
+                  --dusus-esigi 0.25  --artis-esigi 0.60  --supheli-esigi 0.15   (pay değişimi, oran olarak)
+                --yenile: aynı seçim + oy türü + ilçe başka bir dosyayla yüklenmişse onun yerine geçer.
+                """);
             return 1;
     }
     return 0;

@@ -99,3 +99,43 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Karar:** `rapor erime <ilçe kodu> [--oy-turu ...]` seçilen seriyi ekrana yazar (varsayılan belediye meclisi).
   Üç serinin erime csv'si ve kale csv'si `data/out` altına yazılır. Biçim: UTF-8 BOM, `;` ayraç, ondalıkta virgül.
 - **Gerekçe:** Excel tr-TR ayarıyla dosyayı doğrudan doğru sütunlara açar. `data/` git'e girmez, analiz sonuçları depoya girmez.
+
+## Sınır değişikliği tespiti ve insan kararları (2026-11-04)
+
+### K13. Sınır durumu otomatik hesaplanır, eşikler yöne göre ayrıdır
+- **Karar:** Referans, en son seçimdeki birimlerdir. Pay = birimin belediye meclisi oyu ÷ ilçe meclis oyu.
+  Durumlar: Sabit, SonradanKuruldu (değerler boş), Yeni (ilk göründüğü seçim), Şüpheli, SınırıDeğişti.
+  Aynı seçimde ilçede yeni mahalle varsa ve pay en az **%25 düştüyse** ya da en az **%60 arttıysa** sınırı değişti sayılır.
+  Pay %15'ten fazla ama eşikten az değiştiyse **Şüpheli** olur. İlçede yeni mahalle yoksa durum sabittir.
+  Eşikler `--dusus-esigi`, `--artis-esigi` ve `--supheli-esigi` seçenekleriyle değiştirilebilir.
+- **Gerekçe:** İstenen %30 simetrik eşik Esenyurt'ta çalışmadı. Küçüldüğü bilinen Talatpaşa'nın payı yalnızca %27,3 düştü,
+  sabit Akçaburgaz'ın payı ise %48,5 arttı (sürekli büyüyen bir mahalle). Hiçbir simetrik eşik ikisini birden doğru ayırmıyor.
+  Bölünmede eski mahallenin payı düşer; bu yüzden düşüş eşiği artış eşiğinden küçük tutuldu.
+- **Esenyurt sonucu (2014 → 2019):** Küçüldüğü bilinen 14 mahallenin 14'ü de "sınırı değişti" çıktı.
+  Diğer 6 mahallenin hiçbiri bu durumu almadı. Bunların 3'ü şüpheli çıktı: Namık Kemal −%21, Yeşilkent +%23, Akçaburgaz +%49.
+  Kalan 3'ü sabit çıktı: Merkez, Orhan Gazi, Pınar.
+  Bu sonuç bir birim testiyle sabitlendi: `SinirAnaliziTestleri.Esenyurt_Kalibrasyonu`.
+  Düşüş eşiği için aralık dar: Namık Kemal −%21,2 ile Talatpaşa −%27,3 arasında.
+- **UYARI:** Eşikler tek ilçeyle (Esenyurt) ayarlandı. İl geneline geçince onaylanmış insan kararlarıyla yeniden
+  ayarlanacak; bunun aracı `rapor esik-dogrulama` komutudur.
+
+### K14. Karşılaştırılabilir dönem
+- **Karar:** Birimin dönemi, son "Yeni" ya da "SınırıDeğişti" seçiminden son seçime kadardır. Şüpheli durum dönemi kesmez,
+  raporda ⚠ işaretiyle gösterilir. Mahalle düzeyi erimede her birimin tabanı kendi döneminin ilk seçimidir; 2009 tabanı
+  yalnızca 2009'dan beri sabit birimlerde kullanılır. Rapor önce döneme (en uzun dönem önce), sonra kayıp oya göre sıralanır.
+- **Kaleler:** Kale grubu yalnızca 2009'dan beri karşılaştırılabilir birimlerden seçilir. Kullanıcıya soruldu, cevap
+  gelmedi; önerilen seçenek uygulandı. Esenyurt'ta bu yüzden grup küçük.
+- **İlçe düzeyi:** 2009'dan bugüne uzun dönem erime ilçenin tamamı için ayrıca raporlanır; ilçe sınırı bu dönemde değişmedi.
+
+### K15. İnsan kararları tek kaynak (MahalleDurumKararlari)
+- **Karar:** Karar türleri: Sabit, SınırıDeğişti (mahalle + seçim) ve Eşleme (mahalle çifti). Durumlar: Talep,
+  Onaylandı, Reddedildi. Onaylanmış ve yerine başkası geçmemiş karar geçerlidir ve otomatik tespitin önüne geçer;
+  raporda "Şüpheli" yerine "Doğrulandı" görünür. Onaylı eşleme, birime katılan mahallenin kurulduğu seçimde birimi
+  doğrulanmış sabit yapar ve dönemi geriye uzatır.
+- **Silinmezlik:** Kararlar silinmez; bir veritabanı tetikleyicisi DELETE ve TRUNCATE işlemlerini reddeder. Aynı konuda
+  yeni bir karar onaylanınca eski kararın `YerineGecenKararId` alanı dolar ve eski karar geçmişte kalır.
+  Bir konuda tek geçerli karar olmasını süzgeçli benzersiz indeksler sağlar.
+- **Eşlemeler:** Eski `MahalleKoyEslemeleri` tablosu kaldırıldı; migration, tabloda veri varsa durmak üzere yazıldı.
+  `mahalle esleme-yukle --kisi` komutu csv'deki onaylı satırları onaylanmış eşleme kararı olarak aktarır.
+  csv artık yalnızca öneri ve aktarım dosyasıdır.
+- **Yetki:** TalepEden ve Onaylayan şimdilik serbest metindir. Rol ve yetki Sprint 7'de, düzeltme ekranı Sprint 4'te gelecek.

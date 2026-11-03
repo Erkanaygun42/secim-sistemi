@@ -15,7 +15,7 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
     public DbSet<MahalleKoy> MahalleKoyler => Set<MahalleKoy>();
     public DbSet<Sandik> Sandiklar => Set<Sandik>();
     public DbSet<IlceEslemesi> IlceEslemeleri => Set<IlceEslemesi>();
-    public DbSet<MahalleKoyEslemesi> MahalleKoyEslemeleri => Set<MahalleKoyEslemesi>();
+    public DbSet<MahalleDurumKarari> MahalleDurumKararlari => Set<MahalleDurumKarari>();
     public DbSet<KarsilastirmaBirimi> KarsilastirmaBirimleri => Set<KarsilastirmaBirimi>();
     public DbSet<KarsilastirmaBirimiUyesi> KarsilastirmaBirimiUyeleri => Set<KarsilastirmaBirimiUyesi>();
 
@@ -54,6 +54,8 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
         configurationBuilder.Properties<EslemeTuru>().HaveConversion<string>().HaveMaxLength(20);
         configurationBuilder.Properties<YuklemeDurumu>().HaveConversion<string>().HaveMaxLength(20);
         configurationBuilder.Properties<KontrolSonucu>().HaveConversion<string>().HaveMaxLength(20);
+        configurationBuilder.Properties<DurumKarariTuru>().HaveConversion<string>().HaveMaxLength(20);
+        configurationBuilder.Properties<KararDurumu>().HaveConversion<string>().HaveMaxLength(20);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

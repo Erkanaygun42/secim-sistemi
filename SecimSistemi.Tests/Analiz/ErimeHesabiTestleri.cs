@@ -44,7 +44,7 @@ public class ErimeHesabiTestleri
         Assert.Null(s.KorunmaOrani);
         Assert.Equal(0m, s.BeklenenOy);   // beklenen 0 × 300
         Assert.Equal(-6m, s.KayipOy);     // DSP tabanın üstünde oy aldı
-        Assert.Contains("oranı 0", s.Not);
+        Assert.Contains("oran 0", s.Not);
     }
 
     [Fact]
@@ -91,7 +91,7 @@ public class ErimeHesabiTestleri
         Assert.Null(yeni.TabanOrani);
         Assert.Null(yeni.KayipOy);
         Assert.Equal(2m, yeni.SonOrani);
-        Assert.Contains("2009'da yok", yeni.Not);
+        Assert.Contains("(2009) birim yok", yeni.Not);
         Assert.Equal(1, r.Satirlar[0].BirimKod); // kaybı hesaplanabilenler önce
     }
 

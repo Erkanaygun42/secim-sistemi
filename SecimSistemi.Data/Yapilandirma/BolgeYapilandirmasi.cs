@@ -54,14 +54,3 @@ internal sealed class IlceEslemesiYapilandirmasi : IEntityTypeConfiguration<Ilce
         b.HasIndex(x => new { x.EskiIlceId, x.YeniIlceId }).IsUnique();
     }
 }
-
-internal sealed class MahalleKoyEslemesiYapilandirmasi : IEntityTypeConfiguration<MahalleKoyEslemesi>
-{
-    public void Configure(EntityTypeBuilder<MahalleKoyEslemesi> b)
-    {
-        b.HasOne(x => x.EskiMahalleKoy).WithMany().HasForeignKey(x => x.EskiMahalleKoyId);
-        b.HasOne(x => x.YeniMahalleKoy).WithMany().HasForeignKey(x => x.YeniMahalleKoyId);
-        b.Property(x => x.Not).HasMaxLength(500);
-        b.HasIndex(x => new { x.EskiMahalleKoyId, x.YeniMahalleKoyId }).IsUnique();
-    }
-}

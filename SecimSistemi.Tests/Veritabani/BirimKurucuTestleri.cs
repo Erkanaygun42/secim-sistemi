@@ -46,10 +46,10 @@ public sealed class BirimKurucuTestleri : VeritabaniTesti, IDisposable
     {
         var ilce = await YukleAsync();
         var m = await Db.MahalleKoyler.Where(x => x.IlceId == ilce.Id).ToDictionaryAsync(x => x.Kod);
-        Db.MahalleKoyEslemeleri.Add(new MahalleKoyEslemesi
-        {
-            EskiMahalleKoyId = m[999001].Id, YeniMahalleKoyId = m[999003].Id, Tur = EslemeTuru.Bolunme,
-        });
+        var zaman = DateTimeOffset.UtcNow;
+        var esleme = MahalleDurumKarari.EslemeTalebi(m[999001], m[999003], EslemeTuru.Bolunme, "test", null, "test", zaman);
+        esleme.Onayla("onaylayan", zaman, null, null);
+        Db.MahalleDurumKararlari.Add(esleme);
         await Db.SaveChangesAsync();
         Db.ChangeTracker.Clear();
 
@@ -60,5 +60,19 @@ public sealed class BirimKurucuTestleri : VeritabaniTesti, IDisposable
         Assert.Equal("BİRİNCİ MAH. + ÜÇÜNCÜ MAH.", birimler[0].Ad);
         Assert.Equal(2, birimler[0].Uyeler.Count);
         Assert.Equal(3, await Db.KarsilastirmaBirimiUyeleri.CountAsync()); // her mahalle tam bir birimde
+    }
+
+    [Fact]
+    public async Task OnaylanmamisEsleme_BirimiDegistirmez()
+    {
+        var ilce = await YukleAsync();
+        var m = await Db.MahalleKoyler.Where(x => x.IlceId == ilce.Id).ToDictionaryAsync(x => x.Kod);
+        Db.MahalleDurumKararlari.Add(MahalleDurumKarari.EslemeTalebi(m[999001], m[999003], EslemeTuru.Bolunme, "talep", null, "test", DateTimeOffset.UtcNow));
+        await Db.SaveChangesAsync();
+        Db.ChangeTracker.Clear();
+
+        await BirimKurucu.YenidenKurAsync(Db, ilce.Id);
+
+        Assert.Equal(3, await Db.KarsilastirmaBirimleri.CountAsync());
     }
 }

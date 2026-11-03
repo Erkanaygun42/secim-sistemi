@@ -1,7 +1,9 @@
 using System.Globalization;
 using Microsoft.EntityFrameworkCore;
 using SecimSistemi.Data;
+using SecimSistemi.Data.Analiz;
 using SecimSistemi.Domain;
+using SecimSistemi.Domain.Analiz;
 
 namespace SecimSistemi.Importer.Mahalleler;
 
@@ -10,26 +12,31 @@ internal static class MahalleKomutlari
 {
     private static readonly CultureInfo Turkce = CultureInfo.GetCultureInfo("tr-TR");
 
-    public static async Task<int> ListeleAsync(string ilceKodu)
+    public static async Task<int> ListeleAsync(string ilceKodu, SinirEsikleri esikler)
     {
         await using var db = new SecimDbContext(await Veritabani.HazirlaAsync());
         var (ilce, veri) = await VeriOkuAsync(db, ilceKodu);
+        var sinir = await new SinirAnaliziServisi(db).HazirlaAsync(ilce.Id, esikler, birimDuzeyinde: false);
 
-        Console.WriteLine($"{ilce.Ad} ({ilce.Kod}): {veri.Mahalleler.Count} mahalle/köy. Hücreler: sandık sayısı / meclis oyu; — = o seçimde yok.");
+        Console.WriteLine($"{ilce.Ad} ({ilce.Kod}): {veri.Mahalleler.Count} mahalle/köy. Hücreler: sandık sayısı / meclis oyu / sınır durumu; — = o seçimde yok.");
+        Console.WriteLine($"Durum: S sabit · Y yeni · Ş şüpheli · D sınırı değişti · ✓ insan kararıyla doğrulandı. Eşikler: {EsikMetni(esikler)}");
         Console.WriteLine();
         var basliklar = new List<string> { "Kod", "Ad" };
         basliklar.AddRange(veri.Yillar.Select(y => y.ToString(CultureInfo.InvariantCulture)));
-        basliklar.Add("Durum");
+        basliklar.Add("Dönem");
         var satirlar = veri.Mahalleler
             .OrderBy(m => m.Yillar.Keys.Min()).ThenBy(m => m.Ad, StringComparer.Create(Turkce, false))
             .Select(m =>
             {
+                var donem = sinir.Birim(m.Kod);
                 var s = new List<string> { m.Kod.ToString(CultureInfo.InvariantCulture), m.Ad };
-                s.AddRange(veri.Yillar.Select(y => m.Yillar.TryGetValue(y, out var v)
-                    ? string.Create(Turkce, $"{v.SandikSayisi} / {v.MeclisOyu:N0}")
-                    : "—"));
-                var eksik = veri.Yillar.Where(y => !m.Yillar.ContainsKey(y)).ToList();
-                s.Add(eksik.Count == 0 ? "her seçimde" : "yalnızca " + string.Join(", ", m.Yillar.Keys.Order()));
+                s.AddRange(veri.Yillar.Select(y =>
+                {
+                    if (!m.Yillar.TryGetValue(y, out var v)) return "—";
+                    var d = donem?.Yillar.FirstOrDefault(x => x.Yil == y);
+                    return string.Create(Turkce, $"{v.SandikSayisi} / {v.MeclisOyu:N0} {(d is null ? "" : DurumKisaltmasi(d))}");
+                }));
+                s.Add(donem?.Donem ?? "son seçimde yok");
                 return (IReadOnlyList<string>)s;
             })
             .ToList();
@@ -37,12 +44,39 @@ internal static class MahalleKomutlari
 
         Console.WriteLine();
         Console.WriteLine($"Yalnızca bazı seçimlerde görünen: {veri.EksikYillilar.Count()}");
-        Console.WriteLine();
-        Console.WriteLine("İpuçları (eşleme girerken bakın; hiçbiri kendiliğinden kaydedilmez):");
-        foreach (var satir in EslemeOnerici.Ipuclari(veri))
-            Console.WriteLine("  " + satir);
+        var isaretliler = sinir.Birimler
+            .SelectMany(b => b.Yillar.Select(y => (Birim: b, Durum: y)))
+            .Where(x => x.Durum.Sonuc is SinirDurumu.SiniriDegisti or SinirDurumu.Supheli)
+            .GroupBy(x => (x.Durum.Yil, x.Durum.Sonuc))
+            .OrderBy(g => g.Key.Yil).ThenByDescending(g => g.Key.Sonuc);
+        foreach (var g in isaretliler)
+        {
+            Console.WriteLine($"{g.Key.Yil} {DurumAdi(g.Key.Sonuc)} ({g.Count()}): " + string.Join(", ",
+                g.OrderBy(x => x.Durum.PayDegisimi).Select(x => string.Create(Turkce, $"{x.Birim.BirimAdi} {x.Durum.PayDegisimi * 100:+0;-0}%"))));
+        }
         return 0;
     }
+
+    internal static string EsikMetni(SinirEsikleri e) => string.Create(Turkce,
+        $"düşüş %{e.Dusus * 100:0}, artış %{e.Artis * 100:0}, şüpheli %{e.Supheli * 100:0} (pay değişimi; yalnızca ilçede yeni mahalle çıkan seçimlerde)");
+
+    internal static string DurumKisaltmasi(BirimYilDurumu d) => (d.Sonuc switch
+    {
+        SinirDurumu.Sabit => "S",
+        SinirDurumu.Yeni => "Y",
+        SinirDurumu.Supheli => "Ş",
+        SinirDurumu.SiniriDegisti => "D",
+        _ => "",
+    }) + (d.Dogrulandi ? "✓" : "");
+
+    internal static string DurumAdi(SinirDurumu d) => d switch
+    {
+        SinirDurumu.Sabit => "sabit",
+        SinirDurumu.Yeni => "yeni",
+        SinirDurumu.Supheli => "şüpheli",
+        SinirDurumu.SiniriDegisti => "sınırı değişti",
+        _ => "sonradan kuruldu",
+    };
 
     public static async Task<int> EslemeOnerAsync(string ilceKodu)
     {
@@ -65,10 +99,11 @@ internal static class MahalleKomutlari
     }
 
     /// <summary>
-    /// csv'deki onaylı satırları ilçenin eşlemeleri olarak yazar (csv esas alınır: csv'de olmayan eşleme silinir)
-    /// ve karşılaştırma birimlerini yeniden kurar. Hepsi tek transaction içinde.
+    /// csv'deki onaylı satırları karar tablosuna onaylanmış eşleme kararı olarak aktarır ve birimleri yeniden kurar.
+    /// Karar tablosu eşlemelerin tek kaynağıdır: aynı çift (yönden bağımsız) için geçerli bir eşleme kararı varsa satır atlanır;
+    /// csv'den silinen satır eşlemeyi kaldırmaz (kararlar silinmez). Hepsi tek transaction içinde.
     /// </summary>
-    public static async Task<int> EslemeYukleAsync(string ilceKodu)
+    public static async Task<int> EslemeYukleAsync(string ilceKodu, string kisi)
     {
         await using var db = new SecimDbContext(await Veritabani.HazirlaAsync());
         var ilce = await IlceBulAsync(db, ilceKodu);
@@ -86,20 +121,28 @@ internal static class MahalleKomutlari
             throw new YuklemeHatasi("Şu eşlemeler iki farklı ilçeyi bağlıyor: " +
                                     string.Join(", ", karisik.Select(s => $"{s.EskiKod} → {s.YeniKod}")) + ".");
 
+        var gecerliEslemeler = await db.MahalleDurumKararlari
+            .Where(k => k.Karar == DurumKarariTuru.Esleme && k.Durum == KararDurumu.Onaylandi && k.YerineGecenKararId == null
+                        && k.MahalleKoy.IlceId == ilce.Id)
+            .Select(k => new { k.MahalleKoyId, IliskiliMahalleKoyId = k.IliskiliMahalleKoyId!.Value })
+            .ToListAsync();
+        var ciftler = gecerliEslemeler
+            .SelectMany(e => new[] { (e.MahalleKoyId, e.IliskiliMahalleKoyId), (e.IliskiliMahalleKoyId, e.MahalleKoyId) })
+            .ToHashSet();
+
         await using var tx = await db.Database.BeginTransactionAsync();
-        await db.MahalleKoyEslemeleri
-            .Where(e => e.EskiMahalleKoy.IlceId == ilce.Id || e.YeniMahalleKoy.IlceId == ilce.Id)
-            .ExecuteDeleteAsync();
+        var zaman = DateTimeOffset.UtcNow;
+        int aktarilan = 0;
         foreach (var s in buIlce)
         {
-            db.MahalleKoyEslemeleri.Add(new MahalleKoyEslemesi
-            {
-                EskiMahalleKoyId = mahalleler[s.EskiKod].Id,
-                YeniMahalleKoyId = mahalleler[s.YeniKod].Id,
-                Tur = s.Tur!.Value,
-                GecerlilikTarihi = s.Tarih,
-                Not = s.Not.Length == 0 ? null : s.Not,
-            });
+            var (eski, yeni) = (mahalleler[s.EskiKod], mahalleler[s.YeniKod]);
+            if (!ciftler.Add((eski.Id, yeni.Id)) || !ciftler.Add((yeni.Id, eski.Id))) continue;
+            var karar = MahalleDurumKarari.EslemeTalebi(eski, yeni, s.Tur!.Value,
+                gerekce: s.Not.Length > 0 ? s.Not : "mahalle-eslemeleri.csv dosyasında onaylı satır",
+                kaynak: "Tanimlar/mahalle-eslemeleri.csv", talepEden: kisi, zaman, s.Tarih);
+            karar.Onayla(kisi, zaman, "csv'den aktarıldı", oncekiGecerli: null);
+            db.MahalleDurumKararlari.Add(karar);
+            aktarilan++;
         }
         await db.SaveChangesAsync();
         db.ChangeTracker.Clear();
@@ -107,7 +150,8 @@ internal static class MahalleKomutlari
         await tx.CommitAsync();
 
         var mahalleSayisi = birimler.Sum(b => b.MahalleKodlari.Count);
-        Console.WriteLine($"{ilce.Ad}: {buIlce.Count} onaylı eşleme yazıldı; {mahalleSayisi} mahalle {birimler.Count} karşılaştırma birimine ayrıldı.");
+        Console.WriteLine($"{ilce.Ad}: csv'de {buIlce.Count} onaylı satır, {aktarilan} tanesi karar tablosuna yeni aktarıldı; " +
+                          $"{mahalleSayisi} mahalle {birimler.Count} karşılaştırma birimine ayrıldı.");
         foreach (var b in birimler.Where(b => b.MahalleKodlari.Count > 1))
             Console.WriteLine($"  birim {b.Kod}: {b.Ad}");
         return 0;
