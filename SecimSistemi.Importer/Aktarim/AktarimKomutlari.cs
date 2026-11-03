@@ -28,15 +28,7 @@ internal static class AktarimKomutlari
     /// <summary>Dosyaları sırayla yükler; bir dosyada hata olursa orada durur (önceki dosyalar yüklü kalır).</summary>
     public static async Task<int> YukleAsync(IReadOnlyList<string> dosyalar, bool yenile)
     {
-        var secenekler = VeritabaniSecenekleri();
-        await using (var db = new SecimDbContext(secenekler))
-        {
-            var bekleyen = (await db.Database.GetPendingMigrationsAsync()).ToList();
-            if (bekleyen.Count > 0)
-                throw new YuklemeHatasi(
-                    $"Veritabanında uygulanmamış {bekleyen.Count} migration var ({string.Join(", ", bekleyen)}). Önce şunu çalıştırın:{Environment.NewLine}" +
-                    "  dotnet ef database update --project SecimSistemi.Data --startup-project SecimSistemi.Web");
-        }
+        var secenekler = await Veritabani.HazirlaAsync();
 
         var tanimlar = BaslikTanimlari.Yukle();
         int sira = 0;
@@ -73,19 +65,5 @@ internal static class AktarimKomutlari
             $"  satır {o.SatirSayisi:N0} · sandık {o.SandikSayisi:N0} · mahalle {o.MahalleSayisi:N0} · toplam oy {o.ToplamOy:N0} · DSP {(o.DspOyu is { } d ? d.ToString("N0", Turkce) : "sütun yok")} · kontrol: {kontrol}"));
         foreach (var u in o.Uyarilar)
             Console.WriteLine($"  uyarı: {u}");
-    }
-
-    /// <summary>
-    /// Bağlantı bilgisi Web projesiyle aynı user-secrets kimliğinden okunur ("ConnectionStrings:Secim");
-    /// csproj'daki UserSecretsId iki projede aynıdır.
-    /// </summary>
-    private static DbContextOptions<SecimDbContext> VeritabaniSecenekleri()
-    {
-        var ayarlar = new ConfigurationBuilder()
-            .AddUserSecrets(typeof(AktarimKomutlari).Assembly)
-            .Build();
-        var baglanti = ayarlar.GetConnectionString("Secim")
-            ?? throw new YuklemeHatasi("'ConnectionStrings:Secim' tanımlı değil. Web projesinde dotnet user-secrets ile ekleyin; Importer aynı kaydı okur.");
-        return new DbContextOptionsBuilder<SecimDbContext>().UseNpgsql(baglanti).Options;
     }
 }

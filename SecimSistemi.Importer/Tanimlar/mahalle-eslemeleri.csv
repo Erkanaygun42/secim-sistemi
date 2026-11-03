@@ -1,0 +1,18 @@
+# Mahalle/köy eşlemeleri. Yalnızca durum = onayli olan satırlar veritabanına gider (komut: mahalle esleme-yukle <ilçe kodu>).
+# Onaylı eşlemeyle birbirine bağlanan mahalleler tek bir "karşılaştırma birimi" olur; yıllar arası karşılaştırma bu birimde yapılır.
+#
+# Sütunlar (noktalı virgülle ayrılır):
+#   eski_kod, yeni_kod  YSK Muhtarlık Id. eski = önceki seçimlerde görünen, yeni = sonradan görünen birim.
+#   eski_ad, yeni_ad    Bilgi için; doğrulamada kullanılmaz.
+#   tur                 birlesme | bolunme | ad-degisikligi | kod-degisikligi (onayli satırda zorunlu)
+#   tarih               Değişikliğin yürürlük tarihi, yyyy-aa-gg. Bilinmiyorsa boş bırakın.
+#   durum               oneri (araç önerdi) | onayli (siz onayladınız) | ret (siz reddettiniz; yeniden önerilmez)
+#   benzerlik           Ad benzerliği 0–1 (yalnızca bilgi)
+#   not                 Serbest açıklama. Noktalı virgül kullanmayın.
+#
+# Elle satır ekleyebilirsiniz (örnek bölünme): 119319;ARDIÇLI MAH.;147450;YENİ MAH.;bolunme;;onayli;;Resmî Gazete ...
+# Satır aralarına yazılan yorumlar dosya yeniden yazılınca kaybolur; açıklamayı "not" sütununa yazın.
+
+eski_kod;eski_ad;yeni_kod;yeni_ad;tur;tarih;durum;benzerlik;not
+119329;PINAR MAH.;147454;ÇINAR MAH.;;;oneri;0.87;Ad benzerliği, onaylamadan önce resmî kaynaktan doğrulayın. Eski mahallenin ilçe meclis oy payı 2014: 3,9%, 2019: 4,0%.
+119331;ORHAN GAZİ MAH.;147438;OSMANGAZİ MAH.;;;oneri;0.84;Ad benzerliği, onaylamadan önce resmî kaynaktan doğrulayın. Eski mahallenin ilçe meclis oy payı 2014: 1,4%, 2019: 1,4%.

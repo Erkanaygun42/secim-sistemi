@@ -15,6 +15,8 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
     public DbSet<Sandik> Sandiklar => Set<Sandik>();
     public DbSet<IlceEslemesi> IlceEslemeleri => Set<IlceEslemesi>();
     public DbSet<MahalleKoyEslemesi> MahalleKoyEslemeleri => Set<MahalleKoyEslemesi>();
+    public DbSet<KarsilastirmaBirimi> KarsilastirmaBirimleri => Set<KarsilastirmaBirimi>();
+    public DbSet<KarsilastirmaBirimiUyesi> KarsilastirmaBirimiUyeleri => Set<KarsilastirmaBirimiUyesi>();
 
     public DbSet<Secim> Secimler => Set<Secim>();
     public DbSet<Parti> Partiler => Set<Parti>();

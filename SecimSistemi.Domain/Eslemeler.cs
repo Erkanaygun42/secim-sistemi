@@ -14,8 +14,8 @@ public class MahalleKoyEslemesi
     public int YeniMahalleKoyId { get; set; }
     public MahalleKoy YeniMahalleKoy { get; set; } = null!;
 
-    /// <summary>Değişikliğin yürürlüğe girdiği tarih.</summary>
-    public required DateOnly GecerlilikTarihi { get; set; }
+    /// <summary>Değişikliğin yürürlüğe girdiği tarih. Kesin tarih bilinmiyorsa boştur (uydurulmuş tarih yazılmaz).</summary>
+    public DateOnly? GecerlilikTarihi { get; set; }
 
     public required EslemeTuru Tur { get; set; }
 

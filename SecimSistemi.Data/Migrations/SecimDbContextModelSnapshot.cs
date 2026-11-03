@@ -223,6 +223,49 @@ namespace SecimSistemi.Data.Migrations
                     b.ToTable("IlceEslemeleri");
                 });
 
+            modelBuilder.Entity("SecimSistemi.Domain.KarsilastirmaBirimi", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Ad")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)")
+                        .UseCollation("tr-x-icu");
+
+                    b.Property<int>("IlceId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Kod")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IlceId", "Kod")
+                        .IsUnique();
+
+                    b.ToTable("KarsilastirmaBirimleri");
+                });
+
+            modelBuilder.Entity("SecimSistemi.Domain.KarsilastirmaBirimiUyesi", b =>
+                {
+                    b.Property<int>("MahalleKoyId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BirimId")
+                        .HasColumnType("integer");
+
+                    b.HasKey("MahalleKoyId");
+
+                    b.HasIndex("BirimId");
+
+                    b.ToTable("KarsilastirmaBirimiUyeleri");
+                });
+
             modelBuilder.Entity("SecimSistemi.Domain.MahalleKoy", b =>
                 {
                     b.Property<int>("Id")
@@ -269,7 +312,7 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<int>("EskiMahalleKoyId")
                         .HasColumnType("integer");
 
-                    b.Property<DateOnly>("GecerlilikTarihi")
+                    b.Property<DateOnly?>("GecerlilikTarihi")
                         .HasColumnType("date");
 
                     b.Property<string>("Not")
@@ -738,6 +781,36 @@ namespace SecimSistemi.Data.Migrations
                     b.Navigation("YeniIlce");
                 });
 
+            modelBuilder.Entity("SecimSistemi.Domain.KarsilastirmaBirimi", b =>
+                {
+                    b.HasOne("SecimSistemi.Domain.Ilce", "Ilce")
+                        .WithMany()
+                        .HasForeignKey("IlceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Ilce");
+                });
+
+            modelBuilder.Entity("SecimSistemi.Domain.KarsilastirmaBirimiUyesi", b =>
+                {
+                    b.HasOne("SecimSistemi.Domain.KarsilastirmaBirimi", "Birim")
+                        .WithMany("Uyeler")
+                        .HasForeignKey("BirimId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SecimSistemi.Domain.MahalleKoy", "MahalleKoy")
+                        .WithMany()
+                        .HasForeignKey("MahalleKoyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Birim");
+
+                    b.Navigation("MahalleKoy");
+                });
+
             modelBuilder.Entity("SecimSistemi.Domain.MahalleKoy", b =>
                 {
                     b.HasOne("SecimSistemi.Domain.Ilce", "Ilce")
@@ -909,6 +982,11 @@ namespace SecimSistemi.Data.Migrations
                     b.Navigation("Ilce");
 
                     b.Navigation("Secim");
+                });
+
+            modelBuilder.Entity("SecimSistemi.Domain.KarsilastirmaBirimi", b =>
+                {
+                    b.Navigation("Uyeler");
                 });
 #pragma warning restore 612, 618
         }

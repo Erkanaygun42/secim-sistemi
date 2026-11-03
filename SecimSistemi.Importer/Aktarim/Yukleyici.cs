@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SecimSistemi.Data;
 using SecimSistemi.Domain;
 using SecimSistemi.Importer.Eslestirme;
+using SecimSistemi.Importer.Mahalleler;
 using SecimSistemi.Importer.Okuma;
 
 namespace SecimSistemi.Importer.Aktarim;
@@ -152,6 +153,11 @@ public sealed class Yukleyici(SecimDbContext db, BaslikTanimlari tanimlar, strin
 
             if (aktif is not null)
                 await YetimKayitlariSilAsync(secim, ilce, kimlik.OyTuru, ct);
+
+            // Yeni gelen mahallelerin de bir karşılaştırma birimi olsun. Değişiklik izleyicisi boşaltılır:
+            // on binlerce kaydedilmiş sonucu yeniden taramaya gerek yok.
+            db.ChangeTracker.Clear();
+            await BirimKurucu.YenidenKurAsync(db, ilce.Id, ct);
 
             // 5. Arşiv ve commit.
             Arsivle(icerik, sha);
