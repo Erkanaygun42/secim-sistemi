@@ -33,7 +33,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("AdSoyad")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                        .HasColumnType("character varying(150)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int>("IlId")
                         .HasColumnType("integer");
@@ -89,14 +90,16 @@ namespace SecimSistemi.Data.Migrations
 
                     b.Property<string>("IttifakAdi")
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int?>("ListePartiId")
                         .HasColumnType("integer");
 
                     b.Property<string>("Not")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<string>("OyTuru")
                         .IsRequired()
@@ -136,7 +139,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int>("Kod")
                         .HasColumnType("integer");
@@ -160,7 +164,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int>("IlId")
                         .HasColumnType("integer");
@@ -168,7 +173,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("Kod")
                         .IsRequired()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .UseCollation("tr-x-icu");
 
                     b.HasKey("Id");
 
@@ -196,7 +202,8 @@ namespace SecimSistemi.Data.Migrations
 
                     b.Property<string>("Not")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<string>("Tur")
                         .IsRequired()
@@ -227,7 +234,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int>("IlceId")
                         .HasColumnType("integer");
@@ -266,7 +274,8 @@ namespace SecimSistemi.Data.Migrations
 
                     b.Property<string>("Not")
                         .HasMaxLength(500)
-                        .HasColumnType("character varying(500)");
+                        .HasColumnType("character varying(500)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<string>("Tur")
                         .IsRequired()
@@ -366,11 +375,13 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("KisaAd")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
+                        .HasColumnType("character varying(50)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<string>("TamAd")
                         .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
+                        .HasColumnType("character varying(200)")
+                        .UseCollation("tr-x-icu");
 
                     b.HasKey("Id");
 
@@ -397,7 +408,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("HamAd")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<int>("PartiId")
                         .HasColumnType("integer");
@@ -455,7 +467,8 @@ namespace SecimSistemi.Data.Migrations
                     b.Property<string>("Ad")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
+                        .HasColumnType("character varying(100)")
+                        .UseCollation("tr-x-icu");
 
                     b.Property<DateOnly>("Tarih")
                         .HasColumnType("date");

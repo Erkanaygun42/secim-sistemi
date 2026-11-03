@@ -25,8 +25,15 @@ public class SecimDbContext(DbContextOptions<SecimDbContext> options) : DbContex
     public DbSet<Sonuc> Sonuclar => Set<Sonuc>();
     public DbSet<OyOzeti> OyOzetleri => Set<OyOzeti>();
 
+    /// <summary>PostgreSQL'in ICU Türkçe sıralaması: C &lt; Ç, I &lt; İ, O &lt; Ö, S &lt; Ş, U &lt; Ü.</summary>
+    public const string TurkceSiralama = "tr-x-icu";
+
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
+        // Bütün metin sütunları Türkçe sıralanır; ileride eklenen sütunlar da bu kuralı kendiliğinden alır.
+        // Sıralama sütuna yazıldığı için veritabanının kuruluş ayarına bağlı kalmaz (test, canlı, yeni kurulum).
+        configurationBuilder.Properties<string>().UseCollation(TurkceSiralama);
+
         // Seçenekler (enum) veritabanında sayı değil metin olarak durur: "BelediyeMeclisi" gibi.
         // Böylece SQL ile bakarken anlamı okunur, enum'a yeni değer eklemek eski kayıtları bozmaz.
         configurationBuilder.Properties<SecimTuru>().HaveConversion<string>().HaveMaxLength(20);
