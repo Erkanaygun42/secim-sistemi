@@ -51,6 +51,13 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain 
   - `dotnet run --project SecimSistemi.Web`
   - `dotnet ef migrations add <Ad> --project SecimSistemi.Data --startup-project SecimSistemi.Web`
 
+## Pilot: İstanbul / Esenyurt
+- Pilot ilçe İstanbul/Esenyurt.
+- YSK Açık Veri Portalı'ndan ilçe başına, oy türü başına bir dosya iniyor. Her satır bir sandık; mahalle/köy kimliği ve adı her satırda yazılı. Dosyalarda kayıtlı seçmen, oy kullanan, geçerli ve geçersiz oy sütunları yok; yalnızca parti ve bağımsız aday oyları var.
+- İstanbul büyükşehir olduğu için il genel meclisi yok. Pilot oy türleri: belediye meclisi, belediye başkanı, büyükşehir başkanı.
+- `data/raw` dosya adı düzeni: `yil_yerel_oy-turu_ilce.xlsx` (örnek: `2024_yerel_belediye-meclisi_esenyurt.xlsx`).
+- Dosya yapısı: `docs/ysk-dosya-yapisi.md`.
+
 ## Plan
 - Yapım programı: https://claude.ai/artifact/DYnYkvecaSD9bQ7EuN43TJ
 - Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır; 1991–2007 il ve ilçe verisi Mart 2027'den sonra eklenir.
