@@ -166,8 +166,8 @@ else
         <MudText Typo="Typo.body2" Class="mt-1">Not (@g.Count() birim): @g.Key</MudText>
     }
 
-    @* ---------- 3. Kaleler ---------- *@
-    <MudText Typo="Typo.h5" Class="mt-6 mb-1">@ErimeHesabi.TabanYili kaleleri<Ipucu Tanim="SutunSozlugu.Kale" /></MudText>
+    @* ---------- 3. 2009 ilk %20 ---------- *@
+    <MudText Typo="Typo.h5" Class="mt-6 mb-1">@ErimeHesabi.TabanYili ilk %20<Ipucu Tanim="SutunSozlugu.Kale" /></MudText>
     <MudText Typo="Typo.body2">@SutunSozlugu.Kale.Aciklama @(_sonuc.KaleOzeti).</MudText>
     <MudText Typo="Typo.body2" Class="mb-3">Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde:</MudText>
     var kaleYillari = _sonuc.Raporlar.Values.SelectMany(r => r.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();

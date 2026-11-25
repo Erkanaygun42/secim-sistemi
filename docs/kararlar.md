@@ -225,6 +225,7 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   tablosunda ("O seçimdeki sonuç") durur. Sütun adları: "Karşılaştırılabilir dönem" ve (erime) "2009 kalesi".
 - **Gerekçe:** Akçaburgaz 2024'te "Sabit" görünüyor, aynı satırda 2019 şüphesi uyarısı çıkıyordu; okuyan çelişki sanıyordu.
   Kullanıcı isteği.
+  **Değişti (2026-11-25):** "2009 kalesi" sütununun ve tablosunun adı "2009 ilk %20" oldu, bkz. K35.
 
 ### K26. Sütun açıklamaları tek sözlükte
 - **Karar:** Her sütunun adı, sade bir açıklaması ve bir örneği `SutunSozlugu`'nda tutulur. Sayfalarda her sütun başlığının
@@ -291,3 +292,31 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   (Esenyurt: 2009–2024 ve 2019–2024), tablodaki dönem gruplamasıyla aynı sırada; her grafik o dönemin en çok 10 mahallesini
   gösterir. Her grafiğin ölçeği kendi en büyük kaybına göredir; değerler çubuk ucunda yazılı.
 - **Gerekçe:** Farklı tabanlardan gelen kayıplar tek sıralamada karşılaştırılamaz (K6, K14). Kullanıcı isteği.
+
+## Sprint 5 — Mahalle grupları, öncelik listesi, meclis hesaplayıcısı (2026-11-25)
+
+### K34. Mahalle grupları: kale, erozyon, yükselen, zayıf
+- **Karar:** Her mahalle kendi karşılaştırılabilir dönemine göre değerlendirilir (taban = dönemin ilk seçimi; K14), aynı
+  oy türünde (`GrupHesabi`):
+  - **Güçlüydü:** taban oranı ≥ ilçenin aynı yıldaki oranı. Eşitlik güçlü sayılır.
+  - **Eğilim:** oy değişimi (gerçek − beklenen = −kayıp oy) en az 10 oy **ve** oranın göreli değişimi (son ÷ taban − 1) en az
+    %30 ise yönüne göre kazandı/kaybetti; ikisinden biri tutmazsa "değişmedi". Eşiğe eşit değer değişmiş sayılır.
+    Taban oranı 0 ise göreli değişim tanımsızdır; yalnızca oy eşiğine bakılır.
+  - **Grup:** güçlüydü ve kaybetti → Erozyon; güçlüydü, değişmedi ya da kazandı → Kale; zayıftı ve kazandı → Yükselen;
+    zayıftı, değişmedi ya da kaybetti → Zayıf.
+  - DSP taban ya da son seçimde kendi listesiyle pusulada değilse ya da ilçenin taban yılı oranı yoksa grup boştur (not yazılır).
+- **Eşik tek ayarda:** `appsettings.json` → `"Gruplama": { "EnAzOy": 10, "EnAzGoreliDegisim": 0.30 }`. Sayfada "bu eşikle
+  kaç mahalle değişmedi" gösterilir.
+- **Gerekçe:** Sabit puan eşiği (ilk öneri 1 puan) DSP'nin farklı güçte olduğu ilçelerde aynı işi görmez: Esenyurt'ta
+  oranlar %0,1–4 arasında olduğundan 1 puanı yalnızca Akçaburgaz geçiyordu. Göreli eşik zayıf ve güçlü ilçede aynı
+  oranda düşüşü aynı sayar. Kullanıcı seçimi.
+- **Esenyurt sonucu (2024, belediye meclisi, 43 mahalle):** kale 3, erozyon 14, yükselen 3, zayıf 23; eşik yüzünden
+  değişmedi sayılan 16. 2009–2024 döneminde ilçenin 2009 oranının (%0,98) üstünde yalnızca Akçaburgaz vardı; diğer 5 mahalle
+  çok kaybetse de "zayıf" grubundadır (2009'daki ilçe oranı, sonradan bölünen güçlü mahalleleri de içerir).
+- **2x2 tablo** (sonraki adım) grupla aynı şey değildir: dikey eksen "Bugünkü güç" (son oran − ilçenin son oranı), grupların
+  dayandığı güç ise "Dönem başındaki güç". İkisi bilerek farklı tutuldu. Kullanıcı seçimi.
+
+### K35. "2009 kalesi" → "2009 ilk %20"
+- **Karar:** Erime raporundaki sabit grup (2009 belediye meclisi oranına göre ilk %20; K11) "2009 ilk %20" adını aldı.
+  "Kale" adı K34'teki gruba kaldı.
+- **Gerekçe:** İki ayrı kavram aynı adı taşımasın. Kullanıcı seçimi.

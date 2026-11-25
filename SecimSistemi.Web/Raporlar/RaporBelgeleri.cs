@@ -210,7 +210,7 @@ public static class RaporBelgeleri
         Sutun[] kaleSutunlari = [new(Soz.Seri), .. kaleYillari.Select(y => new Sutun($"{y} %", HucreTuru.Oran, Soz.KaleOrani))];
         var kaleSatirlari = e.Raporlar.OrderBy(kv => Metinler.SeriSirasi(kv.Key)).Select(kv => new RaporSatiri(
             [Metinler.Ad(kv.Key), .. kaleYillari.Select(y => (object?)kv.Value.KaleOrtalamalari.FirstOrDefault(k => k.Yil == y)?.Oran)])).ToList();
-        bolumler.Add(new TabloBolumu($"{ErimeHesabi.TabanYili} kaleleri", "2009 kaleleri",
+        bolumler.Add(new TabloBolumu($"{ErimeHesabi.TabanYili} ilk %20", "2009 ilk %20",
             $"{e.KaleOzeti}. Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde.", kaleSutunlari, kaleSatirlari, []));
 
         return new RaporBelgesi("Erime raporu", e.FiltreOzeti, kaynaklar, uretim, bolumler,

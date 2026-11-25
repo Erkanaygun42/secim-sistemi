@@ -81,16 +81,17 @@ public static class SutunSozlugu
         "Beklenen oy − gerçek oy. Eksi değer, DSP'nin tabanın üstünde oy aldığını gösterir.",
         "Beklenen 473, gerçek 39 → kayıp 434 oy.");
 
-    public static readonly SutunTanimi Kale = new("2009 kalesi",
+    public static readonly SutunTanimi Kale = new("2009 ilk %20",
         "2009'da DSP'nin en güçlü olduğu mahallelerin ilk %20'si; her seçimde sabit grup olarak izlenir.",
-        "evet → mahalle bu gruptadır; grubun yıllara göre oranı \"2009 kaleleri\" tablosunda.");
+        "evet → mahalle bu gruptadır; grubun yıllara göre oranı \"2009 ilk %20\" tablosunda. " +
+        "Mahalle gruplarındaki \"Kale\" ile karıştırılmamalı: o, mahallenin kendi dönemindeki seyridir.");
 
     public static readonly SutunTanimi YilOrani = new("Yıllara göre DSP %",
         "Her seçimdeki DSP oranı, yüzde. Gri ve boş hücre: o yıl karşılaştırılabilir dönemin dışında (mahalle henüz yoktu ya da sınırı farklıydı).",
         "2009 gri, 2019 %0,40 → mahalle 2019'da kuruldu ya da sınırı değişti; 2009 değeri aynı toprağı göstermez.");
 
     public static readonly SutunTanimi KaleOrani = new("Grup oranı",
-        "2009 kaleleri grubunun o seçimdeki ağırlıklı oranı: grubun DSP oyu ÷ grubun toplam oyu, yüzde.");
+        "2009 ilk %20 grubunun o seçimdeki ağırlıklı oranı: grubun DSP oyu ÷ grubun toplam oyu, yüzde.");
 
     public static readonly SutunTanimi Pay = new("İlçe meclis oyundaki pay",
         "Mahallenin belediye meclisi oyunun ilçe toplamındaki payı. Sınır değişikliği bu payın ani değişiminden tespit edilir.",

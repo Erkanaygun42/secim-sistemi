@@ -43,6 +43,8 @@ public static class DisaAktarmaUclari
         s.AddSingleton(TimeProvider.System);
         // Ana renk tek ayarda: appsettings.json → Gorunum:AnaRenk (tema, PDF, Excel ve grafikler buradan okur).
         s.AddSingleton(sp => Gorunum.Oku(sp.GetRequiredService<IConfiguration>()));
+        // Mahalle gruplarının gürültü eşiği: appsettings.json → Gruplama.
+        s.AddSingleton(sp => GrupAyarlari.Oku(sp.GetRequiredService<IConfiguration>()));
         s.AddScoped<KarneHazirlayici>();
         s.AddScoped<ErimeHazirlayici>();
         s.AddScoped<RaporKaynaklari>();

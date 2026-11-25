@@ -175,11 +175,11 @@ public class RaporBelgeleriTestleri
     {
         var b = RaporBelgeleri.Erime(OrnekErime(), KaynakListesi.Bos, Uretim);
 
-        Assert.Equal(["İlçe düzeyi", "Mahalle düzeyi", "2009 kaleleri"], b.Bolumler.Select(x => x.SayfaAdi));
+        Assert.Equal(["İlçe düzeyi", "Mahalle düzeyi", "2009 ilk %20"], b.Bolumler.Select(x => x.SayfaAdi));
         var bolum = b.Bolumler[1];
         Assert.Equal(["#", "Kod", "Mahalle/köy", "Karşılaştırılabilir dönem", "2009 %", "2019 %", "2024 %"], bolum.Sutunlar.Take(7).Select(s => s.Baslik));
-        Assert.Contains(bolum.Sutunlar, s => s.Baslik == "2009 kalesi");
-        Assert.DoesNotContain(bolum.Sutunlar, s => s.Baslik is "Taban %" or "Son %" or "Kale");
+        Assert.Contains(bolum.Sutunlar, s => s.Baslik == "2009 ilk %20");
+        Assert.DoesNotContain(bolum.Sutunlar, s => s.Baslik is "Taban %" or "Son %" or "Kale" or "2009 kalesi");
 
         var m = bolum.Satirlar;
         Assert.Equal([SatirTuru.Grup, SatirTuru.Normal, SatirTuru.Grup, SatirTuru.Normal], m.Select(r => r.Tur));
