@@ -364,3 +364,18 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Karar:** Mahallelerin "ikna" ya da "mobilizasyon" önceliği etiketi veri gelene kadar yapılmaz.
 - **Gerekçe:** Etiket mahalle düzeyinde katılım verisi ister (kayıtlı seçmen, oy kullanan). YSK sandık dosyalarında bu
   sütunlar yok (`docs/ysk-dosya-yapisi.md`); `OyOzeti` tablosu boş. Veri gelince ele alınacak. Kullanıcı kararı.
+
+### K38. Öncelik listesi ve satır cümlesi
+- **Karar:** Her karşılaştırılabilir dönem için ayrı liste (`OncelikHesabi`; K33 ile aynı gerekçe). Sıra: kayıp oy büyükten
+  küçüğe (kazanç eksi kayıptır, sona düşer); eşitlikte mahalle büyüklüğü (son seçimdeki toplam oy; seçmen sayısı yok), sonra
+  kod. Kayıp oyu hesaplanamayan mahalle listenin sonundadır. Büyüklük sırası ilçenin tamamına göredir ("ilçenin 20. büyük
+  mahallesi"). Sıra numarası her dönemde 1'den başlar.
+- **Cümle** (`OncelikCumlesi`): tek cümle, sabit kalıp, sayılar satırdan; mahallenin grubuna göre seyir değişir:
+  `AKÇABURGAZ MAH.: 2009'da %3,85 ile ilçe oranının (%0,98) üstündeydi ama geriledi (2024'te %0,32); tabanını
+  koruyabilseydi 434 oy daha alırdı (ilçenin 20. büyük mahallesi, 12.274 oy); ⚠ 2019 seçiminde sınır şüphesi var.`
+  Seyir: erozyon "ama geriledi", kale "ve gücünü korudu/artırdı", yükselen "ama yükseldi", zayıf "ve daha da geriledi /
+  ve değişmedi". Sayılara ek getirilmez (okunuşa bağlıdır, yanlış yazılması kolaydır); yalnızca yıllar ek alır (2009'da,
+  2014'te). İki ondalıkta eşit görünen mahalle ve ilçe oranı üç ondalıkla yazılır ("altındaydı" ile çelişmesin).
+- **Gerekçe:** Kullanıcı isteği: satırın neden öncelikli olduğu tek cümlede okunmalı. Cümle şablondan üretildiği için
+  her satırda aynı yapıdadır, sayı uydurmaz.
+

@@ -101,6 +101,24 @@ public static class Metinler
         return $"{yil}'{ek}";
     }
 
+    /// <summary>Yılın bulunma eki, okunuşa göre: 2009'da, 2014'te, 2002'de, 2006'da, 2010'da, 2040'ta.</summary>
+    public static string Bulunma(int yil)
+    {
+        // Okunuştaki son sözcük: birler basamağı, o 0 ise onlar, o da 0 ise "bin" / "yüz".
+        var son = (yil % 10) != 0 ? (yil % 10) switch
+            {
+                1 => "bir", 2 => "iki", 3 => "üç", 4 => "dört", 5 => "beş", 6 => "altı", 7 => "yedi", 8 => "sekiz", _ => "dokuz",
+            }
+            : ((yil / 10) % 10) != 0 ? ((yil / 10) % 10) switch
+            {
+                1 => "on", 2 => "yirmi", 3 => "otuz", 4 => "kırk", 5 => "elli", 6 => "altmış", 7 => "yetmiş", 8 => "seksen", _ => "doksan",
+            }
+            : ((yil / 100) % 10) != 0 ? "yüz" : "bin";
+        var sert = "çfhkpsşt".Contains(son[^1]);
+        var kalin = "aıou".Contains(son.Last(c => "aeıioöuü".Contains(c)));
+        return $"{yil}'{(sert ? 't' : 'd')}{(kalin ? 'a' : 'e')}";
+    }
+
     /// <summary>Grafikte oy türünün renk sırası; renk seriyi izler (meclis her zaman 1. renk, ana renk).</summary>
     public static int SeriSirasi(OyTuru o) => o switch
     {
