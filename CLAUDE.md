@@ -70,7 +70,8 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
 
 ## Plan
 - Yapım programı: https://claude.ai/artifact/DYnYkvecaSD9bQ7EuN43TJ
-- Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır; 1991–2007 il ve ilçe verisi Mart 2027'den sonra eklenir.
+- Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır. Mart 2027 planı iptal edildi (2026-11-25, K42).
+- **Hedef (2026-11-25):** sistem İstanbul (39 ilçe) ve ardından Kocaeli (12 ilçe) için 6 Aralık 2026'dan önce kullanılır olmalı.
 - Sprint 2 (veri yükleyici) tamam. Toplam kontrol dosyaları (`yil_yerel_oy-turu_istanbul-ilceler.xlsx`) henüz yok; okuyucuları dosyalar gelince gerçek yapıya göre yazılacak.
 - Sprint 3 (mahalle analizi, erime raporu) tamam. Esenyurt'ta 2014–2019 arasında kurulan 23 mahallenin eşlemesi onay bekliyor; o zamana kadar her mahalle ayrı birim (docs/kararlar.md K6).
 - Sprint 4 (sayfalar, Excel ve PDF) tamam: `/karne`, `/mahalle/{ilçe}/{kod}`, `/erime`; dışa aktarma `/disa-aktar/{karne|mahalle|erime}.{xlsx|pdf}`.
@@ -79,8 +80,9 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   (sayfada ⓘ, PDF'te "Bu rapor nasıl okunur"), grafikler sunucuda SVG (`SvgCizici`).
 - Renkler tek ayarda: `appsettings.json` → `Gorunum:AnaRenk` (DSP logo mavisi `#16c0ed`; yazı tonu bundan hesaplanır) ve
   `Gorunum:IkinciRenk` (logo kırmızısı `#f04248`, şimdilik kullanılmıyor). Logo arayüzde ve PDF'te yok (K32).
-- Sprint 5 sürüyor: mahalle grupları (K34), meclis hesaplayıcısı (2972 sayılı Kanun, K36), öncelik listesi (K38),
+- Sprint 5 tamam (2026-11-25): mahalle grupları (K34), meclis hesaplayıcısı (2972 sayılı Kanun, K36), öncelik listesi (K38),
   sayfalar `/gruplar`, `/oncelik`, `/meclis` (K39), Excel ve PDF (K41). Meclis hesabı basın kaynaklı iki örnekle test edildi
-  (K40, resmî değil); 2014 resmî dağılımı bekleniyor. Meclis üye sayıları
+  (K40, resmî değil). 2014 meclis doğrulaması, resmî veri gelince ayrı küçük iş. Meclis üye sayıları
   `SecimSistemi.Importer/Tanimlar/meclis-uye-sayilari.csv` (Esenyurt 2024 = 45, doğrulanmadı); resmî sayılar kullanıcıdan gelecek.
-- Harita Sprint 6'da.
+- Sıradaki: İstanbul ve Kocaeli planı (onay bekliyor). Harita, veri ve sayfalar bittikten sonra ve yetişirse.
+- Erteleniyor: potansiyel skoru, sandık koordinatları, ikna/mobilizasyon etiketi (K37).

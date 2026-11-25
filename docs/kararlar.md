@@ -421,3 +421,13 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Vurgu satırı:** yeni satır türü `Vurgu` (kalın, sıranın herhangi bir yerinde); `Toplam` en sonda kalır ve Excel süzgecinin
   dışındadır.
 
+## Öncelik değişikliği: İstanbul ve Kocaeli (2026-11-25)
+
+### K42. Sprint 5 kapandı; yeni hedef 6 Aralık 2026
+- **Karar:** Sprint 5 kapatıldı. Yeni hedef: sistemin İstanbul (39 ilçe) ve ardından Kocaeli (12 ilçe) için 6 Aralık 2026'dan
+  önce kullanılır olması. Mart 2027 planı iptal. 2014 Esenyurt meclis doğrulaması (K40) resmî veri gelince ayrı küçük bir iş.
+- **Erteleniyor:** potansiyel skoru, sandık koordinatları, ikna/mobilizasyon etiketi (K37). Harita ancak veri, yükleyici, üye
+  sayıları ve sayfalar bittikten sonra ve tarihe yetişecekse.
+- **Genel kural (kullanıcı):** doğrulanmamış veriler tablolarda görünmeye devam eder, ama her yerde uyarıyla işaretlenir.
+- **Gerekçe:** Kullanıcı kararı.
+
