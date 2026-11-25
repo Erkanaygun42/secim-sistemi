@@ -18,6 +18,7 @@ builder.Services.AddDbContextFactory<SecimDbContext>(o => o.UseNpgsql(baglanti))
 
 builder.Services.AddMudServices();
 builder.Services.AddScoped<KarneHazirlayici>();
+builder.Services.AddScoped<ErimeHazirlayici>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

@@ -1,0 +1,197 @@
+@page "/erime"
+@inject ErimeHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>Erime raporu</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Erime raporu</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Ilce is not { } ilce || _sonuc.Seriler.Count == 0)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında yerel seçim verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İlçe" Value="@ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Ilceler)
+                {
+                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Mahalle tablosunda oy türü" Value="@Metinler.Kod(_sonuc.OyTuru)" ValueChanged="OyTuruDegisti"
+                       Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.Seriler)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
+    @* ---------- 1. İlçe düzeyi, uzun dönem ---------- *@
+    <MudText Typo="Typo.h5" Class="mb-1">İlçe düzeyi · @ErimeHesabi.TabanYili'dan bugüne</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        @ilce.Ad ilçesinin tamamı. İlçe sınırı bu dönemde değişmedi; bu yüzden uzun dönem karşılaştırma ilçe düzeyinde yapılır.
+    </MudText>
+    <MudSimpleTable Dense="true" Bordered="true" Class="mb-2">
+        <thead>
+            <tr>
+                <th>Seri</th>
+                <th class="sayi">Yıl</th>
+                <th class="sayi">Toplam oy</th>
+                <th class="sayi">DSP oyu</th>
+                <th class="sayi">DSP %</th>
+                <th class="sayi">Puan (@ErimeHesabi.TabanYili'a göre)</th>
+                <th class="sayi">Korunma</th>
+                <th class="sayi">Beklenen oy</th>
+                <th class="sayi">Kayıp oy</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (seri, satirlar) in _sonuc.IlceErimesi)
+            {
+                @foreach (var (s, i) in satirlar.Select((s, i) => (s, i)))
+                {
+                    <tr class="@(i == satirlar.Count - 1 ? "satir-son" : "")">
+                        @if (i == 0)
+                        {
+                            <td rowspan="@satirlar.Count"><b>@Metinler.Ad(seri)</b></td>
+                        }
+                        <td class="sayi">@s.Yil</td>
+                        <td class="sayi">@Metinler.Oy(s.ToplamOy)</td>
+                        <td class="sayi">@Metinler.Oy(s.DspOyu)</td>
+                        <td class="sayi">@Metinler.Oran(s.Oran)</td>
+                        <td class="sayi">@Metinler.Puan(s.PuanFarki)</td>
+                        <td class="sayi">@Metinler.Katsayi(s.KorunmaOrani)</td>
+                        <td class="sayi">@Metinler.Oy(s.BeklenenOy)</td>
+                        <td class="sayi">@Metinler.Oy(s.KayipOy)</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    @* ---------- 2. Mahalle düzeyi, dönemli ---------- *@
+    var rapor = _sonuc.Rapor!;
+    <MudText Typo="Typo.h5" Class="mt-6 mb-1">Mahalle düzeyi · @Metinler.Ad(_sonuc.OyTuru) · son seçim @(rapor.SonYil?.ToString() ?? Metinler.Bos)</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">
+        Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir (son sınır değişikliğinden bugüne).
+        Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce).
+    </MudText>
+    <MudSimpleTable Dense="true" Hover="true" Bordered="true">
+        <thead>
+            <tr>
+                <th class="sayi">#</th>
+                <th>Kod</th>
+                <th>Mahalle/köy</th>
+                <th class="sayi">Taban %</th>
+                <th class="sayi">Son %</th>
+                <th class="sayi">Puan</th>
+                <th class="sayi">Korunma</th>
+                <th class="sayi">Taban DSP</th>
+                <th class="sayi">Son DSP</th>
+                <th class="sayi">Son toplam</th>
+                <th class="sayi">Beklenen</th>
+                <th class="sayi">Kayıp</th>
+                <th>Kale</th>
+            </tr>
+        </thead>
+        <tbody>
+            @{ var sira = 0; }
+            @foreach (var grup in _sonuc.DonemGruplari())
+            {
+                <tr class="satir-grup">
+                    <td colspan="13">Dönem <b>@grup.Key</b> · @grup.Count() birim</td>
+                </tr>
+                @foreach (var s in grup)
+                {
+                    sira++;
+                    var uyari = _sonuc.Uyari(s.BirimKod);
+                    <tr class="@(uyari is null ? "" : "satir-supheli")">
+                        <td class="sayi">@sira</td>
+                        <td>@s.BirimKod</td>
+                        <td>
+                            <MudLink Href="@($"mahalle/{ilce.Kod}/{s.BirimKod}")">@s.BirimAdi</MudLink>
+                            @if (uyari is not null)
+                            {
+                                <MudTooltip Text="@uyari">
+                                    <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Small" Class="ml-1" />
+                                </MudTooltip>
+                            }
+                        </td>
+                        <td class="sayi">@Metinler.Oran(s.TabanOrani)</td>
+                        <td class="sayi">@Metinler.Oran(s.SonOrani)</td>
+                        <td class="sayi">@Metinler.Puan(s.PuanFarki)</td>
+                        <td class="sayi">@Metinler.Katsayi(s.KorunmaOrani)</td>
+                        <td class="sayi">@Metinler.Oy(s.TabanDspOyu)</td>
+                        <td class="sayi">@Metinler.Oy(s.SonDspOyu)</td>
+                        <td class="sayi">@Metinler.Oy(s.SonToplamOy)</td>
+                        <td class="sayi">@Metinler.Oy(s.BeklenenOy)</td>
+                        <td class="sayi"><b>@Metinler.Oy(s.KayipOy)</b></td>
+                        <td>@(s.KaleMi ? "kale" : "")</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </MudSimpleTable>
+    @foreach (var g in rapor.Satirlar.Where(s => s.Not is not null).GroupBy(s => s.Not!))
+    {
+        <MudText Typo="Typo.body2" Class="mt-1">Not (@g.Count() birim): @g.Key</MudText>
+    }
+
+    @* ---------- 3. Kaleler ---------- *@
+    <MudText Typo="Typo.h5" Class="mt-6 mb-1">@ErimeHesabi.TabanYili kaleleri</MudText>
+    <MudText Typo="Typo.body2">@_sonuc.KaleOzeti</MudText>
+    <MudText Typo="Typo.body2" Class="mb-3">Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde:</MudText>
+    var yillar = _sonuc.Raporlar.Values.SelectMany(r => r.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();
+    <MudSimpleTable Dense="true" Bordered="true" Style="max-width: 640px">
+        <thead>
+            <tr>
+                <th>Seri</th>
+                @foreach (var y in yillar)
+                {
+                    <th class="sayi">@y</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (seri, r) in _sonuc.Raporlar)
+            {
+                <tr>
+                    <td>@Metinler.Ad(seri)</td>
+                    @foreach (var y in yillar)
+                    {
+                        <td class="sayi">@Metinler.Oran(r.KaleOrtalamalari.FirstOrDefault(k => k.Yil == y)?.Oran)</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    <RaporNotlari Esikler="_sonuc.Sinir?.Esikler">
+        <li>Korunma = son oran ÷ taban oranı (1 = oran korundu). Beklenen oy = taban oranı × son seçimdeki toplam oy.
+            Kayıp oy = beklenen − gerçek; eksi değer, DSP'nin tabanın üstünde oy aldığını gösterir.</li>
+        <li>Son seçim: o seride DSP'nin kendi listesiyle pusulada olduğu en son yerel seçim.</li>
+        <li>Toplam oy = parti ve bağımsız aday oylarının toplamı. Oranlar yüzde, puan farkı yüzde puandır.</li>
+    </RaporNotlari>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+
+    private ErimeSonucu? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new ErimeSorgusu(Ilce, OyTuru));
+
+    private void Git(ErimeSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()));
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+}

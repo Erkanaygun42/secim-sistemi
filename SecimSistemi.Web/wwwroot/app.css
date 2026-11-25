@@ -79,3 +79,12 @@ h1:focus {
 .soluk {
     color: #8a8a8a;
 }
+
+.satir-grup > td {
+    background-color: #f3f3f3;
+    font-size: 0.85rem;
+}
+
+.satir-son > td {
+    font-weight: 600;
+}
