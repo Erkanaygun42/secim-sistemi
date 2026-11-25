@@ -1,0 +1,5 @@
+# Belediye meclisi asıl üye sayısı (2972 sayılı Kanun m.5/b; kontenjan m.10/c'den hesaplanır).
+# durum: dogrulandi (YSK'nın ilan ettiği sonuçtan okundu) | dogrulanmadi (varsayım; kullanılır ama sayfada uyarılır).
+# kaynak: sayının nereden okunduğu. Bir ilçe ve yıl için tek satır.
+ilce;yil;uye_sayisi;durum;kaynak
+34-ESENYURT;2024;45;dogrulanmadi;kullanıcı varsayımı (2026-11-25); YSK sonucundan doğrulanacak

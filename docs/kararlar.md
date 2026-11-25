@@ -320,3 +320,47 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Karar:** Erime raporundaki sabit grup (2009 belediye meclisi oranına göre ilk %20; K11) "2009 ilk %20" adını aldı.
   "Kale" adı K34'teki gruba kaldı.
 - **Gerekçe:** İki ayrı kavram aynı adı taşımasın. Kullanıcı seçimi.
+
+### K36. Belediye meclisi dağılımı: 2972 sayılı Kanun
+- **Kaynak:** 2972 sayılı Kanun'un mevzuat.gov.tr'deki Word metni (`https://www.mevzuat.gov.tr/MevzuatMetin/1.5.2972.doc`,
+  2026-11-25'te indirildi; metindeki son değişiklik notu 13/3/2018 - 7102). PDF metni okunamadı. 5393 m.17 ve 5216 m.12
+  meclisin "ilgili kanunda gösterilen esas ve usullere göre" seçildiğini söyler; üye sayısı ve dağıtım 2972'dedir.
+- **Metinden doğrulanan kurallar** (`MeclisHesabi`):
+  - **Üye sayısı (m.5/b):** nüfusu 10.000'e kadar 9; 10.001–20.000: 11; 20.001–50.000: 15; 50.001–100.000: 25;
+    100.001–250.000: 31; 250.001–500.000: 37; 500.001–1.000.000: 45; 1.000.000'dan fazla: 55. "Son genel nüfus sayımı
+    sonuçlarına göre."
+  - **Kontenjan sayısı (m.10/c):** üye sayısı 9 ve 11 olan beldelerde 1, 15'te 2, 25 ve 31'de 3, 37'de 4, 45'te 5, 55'te 6.
+  - **Baraj ve bölme (m.23/a):** "Bir seçim çevresinde kullanılan geçerli oy toplamının onda birine tekabül eden sayı,
+    bütün partilerin ve bağımsız adayların aldıkları oy sayısından ayrı ayrı çıkarılır. Bu çıkarmadan sonra geriye oyu
+    kalmayan siyasi partiler ve bağımsız adaylar üye tahsisinde hesaba katılmaz." Kalan oylar 1, 2, 3 ... diye bölünür,
+    paylar parti ayrımı yapılmadan büyükten küçüğe sıralanır ve üyelikler bu sırayla verilir. **Bölme ham oyla değil kalan
+    oyla yapılır** (düz D'Hondt değil); barajı az farkla geçen liste çok küçük paylarla bölmeye girer.
+  - **Kontenjan (m.23/a, 3507 ek):** bölme, üye sayısından kontenjan sayısı çıkarılarak yapılır; kontenjan üyeliklerinin
+    hepsini "geçerli oyların en çoğunu almış olan siyasi parti" kazanır.
+  - **Eşitlik (m.23/a):** son üyelikler için eşit paylar varsa ad çekilir (kura). Hesap kurayı öngöremez: eşitliği bildirir,
+    koltuğu toplam oyu fazla olana verir.
+  - **Büyükşehir (m.6/a, m.24):** büyükşehir meclisine her ilçe meclisinin beşte biri (artık sayılar alınmaz) seçiliş
+    sırasıyla katılır. Hesaplayıcının kapsamı dışında.
+- **Varsayımlar (metinde açık değil):**
+  - Barajı geçmek için oyun geçerli oyun onda birinden **fazla** olması gerekir (tam onda birde geriye oy kalmaz).
+    Metnin sözcüklerinden çıkan yorum.
+  - Bağımsız aday tek kişidir, en çok bir üyelik alır.
+  - Her parti kontenjan adayı göstermiştir; kontenjanı alan "en çok oy alan siyasi parti" partiler arasından seçilir
+    (bağımsızlar arasından değil). İki partinin oyu eşitse kontenjanın kime gittiği metinde yok: ad sırası.
+  - Üye sayısı nüfustan hesaplanmaz: YSK'nın hangi nüfus verisini kullandığı metinden doğrulanamadı ve nüfus verisi bizde
+    yok. İlan edilen sayı `SecimSistemi.Importer/Tanimlar/meclis-uye-sayilari.csv` dosyasına kaynağıyla elle girilir;
+    `durum` alanı `dogrulandi` ya da `dogrulanmadi`.
+  - Metnin 2018 sonrasında değişmediği doğrulanmadı.
+- **Girdi:** geçerli oy = sandık dosyalarındaki parti ve bağımsız oylarının toplamı (K8). Parti oyları sandık toplamıdır
+  (`MeclisServisi`).
+- **Ek oy senaryosu:** varsayılan, ek oyun yeni seçmenden gelmesidir (geçerli oy toplamı da artar); "en büyük partiden"
+  seçeneğinde toplam değişmez. Gereken en az ek oy ikili aramayla bulunur; hedefin üye sayısı ek oyla azalmaz. Bir eşikte
+  birden çok üye gelebilir (en büyük parti olunca kontenjan da gelir). Kullanıcı seçimi.
+- **Esenyurt üye sayıları:** 2024 için 45 kabul edildi, `dogrulanmadi` (kullanıcı varsayımı, 2026-11-25). 2009, 2014,
+  2019 ve 2024 üye sayıları ve seçim günkü dağılımları kullanıcı tarafından YSK'dan iletilecek. Basında geçen 2024
+  dağılımı ("CHP 28, AK Parti 14, MHP 3") seçim sonrası değişiklikleri içerebileceği için doğrulama testine konmadı.
+
+### K37. İkna/mobilizasyon etiketi ertelendi
+- **Karar:** Mahallelerin "ikna" ya da "mobilizasyon" önceliği etiketi veri gelene kadar yapılmaz.
+- **Gerekçe:** Etiket mahalle düzeyinde katılım verisi ister (kayıtlı seçmen, oy kullanan). YSK sandık dosyalarında bu
+  sütunlar yok (`docs/ysk-dosya-yapisi.md`); `OyOzeti` tablosu boş. Veri gelince ele alınacak. Kullanıcı kararı.
