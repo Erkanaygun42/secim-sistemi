@@ -79,4 +79,7 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   (sayfada ⓘ, PDF'te "Bu rapor nasıl okunur"), grafikler sunucuda SVG (`SvgCizici`).
 - Renkler tek ayarda: `appsettings.json` → `Gorunum:AnaRenk` (DSP logo mavisi `#16c0ed`; yazı tonu bundan hesaplanır) ve
   `Gorunum:IkinciRenk` (logo kırmızısı `#f04248`, şimdilik kullanılmıyor). Logo arayüzde ve PDF'te yok (K32).
-- Sıradaki: Sprint 5 (yapım programına bakın). Harita Sprint 6'da.
+- Sprint 5 sürüyor: mahalle grupları (K34), meclis hesaplayıcısı (2972 sayılı Kanun, K36), öncelik listesi (K38),
+  sayfalar `/gruplar`, `/oncelik`, `/meclis` (K39). Sırada Excel ve PDF. Meclis üye sayıları
+  `SecimSistemi.Importer/Tanimlar/meclis-uye-sayilari.csv` (Esenyurt 2024 = 45, doğrulanmadı); resmî sayılar kullanıcıdan gelecek.
+- Harita Sprint 6'da.

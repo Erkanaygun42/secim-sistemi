@@ -1,0 +1,160 @@
+@page "/gruplar"
+@inject GrupHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>Mahalle grupları</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Mahalle grupları</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Ilce is not { } ilce || _sonuc.Gruplar is not { } gruplar)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında yerel seçim verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İlçe" Value="@ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Erime.Ilceler)
+                {
+                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Oy türü" Value="@Metinler.Kod(_sonuc.Erime.OyTuru)" ValueChanged="OyTuruDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.Erime.Seriler)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
+    <MudText Class="mb-3">
+        Her mahalle kendi karşılaştırılabilir dönemine göre değerlendirilir: dönem başında ilçe oranının üstünde miydi
+        (<b>dönem başındaki güç</b>) ve dönem içinde ne oldu (<b>eğilim</b>).
+    </MudText>
+
+    <MudGrid Class="mb-2">
+        @foreach (var g in Enum.GetValues<MahalleGrubu>())
+        {
+            <MudItem xs="6" md="3">
+                <MudPaper Outlined="true" Class="pa-3">
+                    <MudText Typo="Typo.subtitle2">@Metinler.Ad(g)</MudText>
+                    <MudText Typo="Typo.h4">@gruplar.Sayi(g)</MudText>
+                    <MudText Typo="Typo.caption">@Metinler.Tanim(g)</MudText>
+                </MudPaper>
+            </MudItem>
+        }
+    </MudGrid>
+    <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+        Bu eşikle (@GrupAyarlari.Metin(gruplar.Esikler)) <b>@gruplar.DegismeyenSayisi mahalle</b> "değişmedi" sayıldı.
+        Eşik <code>appsettings.json</code> → <code>Gruplama</code> ayarındadır.
+        @if (gruplar.Satirlar.Count(s => s.Grup is null) is > 0 and var grupsuz)
+        {
+            <span>@grupsuz mahallenin grubu hesaplanamadı (DSP pusulada değil ya da ilçe oranı yok).</span>
+        }
+    </MudAlert>
+
+    @* ---------- 2x2 ---------- *@
+    <MudText Typo="Typo.h5" Class="mb-1">Bugünkü güç × eğilim<Ipucu Tanim="SutunSozlugu.BugunkuGuc" /></MudText>
+    <MudText Typo="Typo.body2" Class="mb-2">
+        Satırlar <b>bugünkü güç</b> (son oran ilçenin son oranının üstünde mi), sütunlar <b>eğilim</b> (dönem içi puan farkı).
+        Gruplar ise dönem başındaki güce göredir; bir mahalle "erozyon" grubunda olup burada "zayıf" satırına düşebilir.
+    </MudText>
+    var kareler = _sonuc.Kareler();
+    <MudSimpleTable Dense="true" Bordered="true" Class="mb-4 dortlu">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Geriledi (puan farkı &lt; 0)</th>
+                <th>Korudu ya da yükseldi (puan farkı ≥ 0)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var guclu in new[] { true, false })
+            {
+                <tr>
+                    <th>@(guclu ? "Bugün ilçenin üstünde" : "Bugün ilçenin altında")</th>
+                    @foreach (var yukseldi in new[] { false, true })
+                    {
+                        var k = kareler.Single(x => x.Guclu == guclu && x.Yukseldi == yukseldi);
+                        <td>
+                            <div><b>@k.Ad</b> · @k.Sayi mahalle · @Metinler.Oy(k.ToplamOy) oy</div>
+                            <div class="soluk-yazi">@KareAdlari(k)</div>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    <GrafikKutusu Grafik="RaporGrafikleri.GucEgilim(_sonuc)" />
+
+    @* ---------- Mahalleler ---------- *@
+    <MudText Typo="Typo.h5" Class="mt-4 mb-2">Mahalleler</MudText>
+    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="genis-tablo">
+        <thead>
+            <tr>
+                <SutunBasligi Tanim="SutunSozlugu.Kod" />
+                <SutunBasligi Tanim="SutunSozlugu.Mahalle" />
+                <SutunBasligi Tanim="SutunSozlugu.Donem" />
+                <SutunBasligi Tanim="SutunSozlugu.Grup" />
+                <SutunBasligi Tanim="SutunSozlugu.DonemBasindakiGuc" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.BugunkuGuc" Sag="true" />
+                <SutunBasligi Baslik="Puan farkı" Tanim="SutunSozlugu.PuanTabana" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.OyDegisimi" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.GoreliDegisim" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Egilim" />
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var s in gruplar.Satirlar)
+            {
+                var uyari = _sonuc.Erime.Uyari(s.BirimKod);
+                <tr class="@(uyari is null ? "" : "satir-supheli")">
+                    <td>@s.BirimKod</td>
+                    <td>
+                        <MudLink Href="@($"mahalle/{ilce.Kod}/{s.BirimKod}")">@s.BirimAdi</MudLink>
+                        @if (uyari is not null)
+                        {
+                            <MudTooltip Text="@uyari">
+                                <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Small" Class="ml-1" />
+                            </MudTooltip>
+                        }
+                    </td>
+                    <td>@(_sonuc.Erime.Sinir?.Birim(s.BirimKod)?.Donem ?? Metinler.Bos)</td>
+                    <td><GrupEtiketi Grup="s.Grup" Egilim="s.Egilim" Not="@s.Not" /></td>
+                    <td class="sayi">@Metinler.Puan(s.DonemBasindakiGuc)</td>
+                    <td class="sayi">@Metinler.Puan(s.BugunkuGuc)</td>
+                    <td class="sayi">@Metinler.Puan(s.PuanFarki)</td>
+                    <td class="sayi">@(s.OyDegisimi is { } od ? (od > 0 ? "+" : od < 0 ? "−" : "") + Metinler.Oy(Math.Abs(od)) : Metinler.Bos)</td>
+                    <td class="sayi">@Metinler.Goreli(s.GoreliDegisim)</td>
+                    <td>@(s.Egilim is { } e ? Metinler.Ad(e) : Metinler.Bos)</td>
+                </tr>
+            }
+        </tbody>
+    </MudSimpleTable>
+
+    <RaporNotlari Maddeler="RaporBelgeleri.GrupNotlari" Esikler="_sonuc.Erime.Sinir?.Esikler" />
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+
+    private GrupSonuclari? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new GrupSorgusu(Ilce, OyTuru));
+
+    private void Git(GrupSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()));
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+
+    private static string KareAdlari(DortluKare k) =>
+        k.Sayi == 0 ? "—" : string.Join(", ", k.Mahalleler.Take(8).Select(m => m.BirimAdi.Replace(" MAH.", ""))) + (k.Sayi > 8 ? $" ve {k.Sayi - 8} mahalle daha" : "");
+}

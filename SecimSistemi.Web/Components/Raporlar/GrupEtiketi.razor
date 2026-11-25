@@ -1,0 +1,20 @@
+@* Mahalle grubunun etiketi; üzerine gelince grubun tanımı ve eğilimi. Uyarı renkleri (sarı, kırmızı) kullanılmaz,
+   onlar sınır şüphesine ayrılmıştır. *@
+
+@if (Grup is { } g)
+{
+    <MudTooltip Text="@($"{Metinler.Tanim(g)}" + (Egilim is { } e ? $" · eğilim: {Metinler.Ad(e).ToLower(Metinler.Turkce)}" : ""))">
+        <MudChip T="string" Size="Size.Small" Variant="@(g is MahalleGrubu.Kale or MahalleGrubu.Yukselen ? Variant.Filled : Variant.Outlined)"
+                 Color="@(g is MahalleGrubu.Kale or MahalleGrubu.Erozyon ? Color.Primary : Color.Default)">@Metinler.Ad(g)</MudChip>
+    </MudTooltip>
+}
+else
+{
+    <span title="@Not">@Metinler.Bos</span>
+}
+
+@code {
+    [Parameter] public MahalleGrubu? Grup { get; set; }
+    [Parameter] public Egilim? Egilim { get; set; }
+    [Parameter] public string? Not { get; set; }
+}

@@ -30,6 +30,31 @@ public static class RaporBelgeleri
         "Son seçim: o seride DSP'nin kendi listesiyle pusulada olduğu en son yerel seçim.",
     ];
 
+    public static readonly string[] GrupNotlari =
+    [
+        "Gruplar her mahallenin kendi karşılaştırılabilir dönemine göredir (taban = dönemin ilk seçimi). Güçlü = taban oranı, ilçenin aynı yıldaki oranına eşit ya da üstünde.",
+        "Değişim eşiği tek ayarda: appsettings.json → Gruplama (oy farkı ve oranın göreli değişimi; ikisi de aşılmazsa \"değişmedi\").",
+        "2x2 tablo ve grafik bugünkü güce göredir, gruplar dönem başındaki güce göre; ikisi bilerek farklıdır.",
+    ];
+
+    public static readonly string[] OncelikNotlari =
+    [
+        "Her karşılaştırılabilir dönem ayrı listededir: farklı tabanlardan gelen kayıplar tek sıralamada karşılaştırılamaz.",
+        "Sıra: kayıp oy (beklenen − gerçek) büyükten küçüğe; eşitlikte son seçimdeki toplam oy. Büyüklük sırası ilçenin tamamına göredir.",
+        "Cümleler satırdaki sayılardan sabit kalıpla üretilir.",
+    ];
+
+    public static readonly string[] MeclisNotlari =
+    [
+        "Dağıtım 2972 sayılı Kanun'a göredir: geçerli oyun onda biri her listenin oyundan çıkarılır, geriye oyu kalmayan üye alamaz; " +
+        "üyelikler kalan oyların 1, 2, 3 … diye bölünmesiyle dağıtılır (m.23/a). Bu yüzden barajı az farkla geçen liste üye alamayabilir.",
+        "Kontenjan üyeliklerinin hepsi geçerli oyların en çoğunu alan partiye gider (m.23/a); sayısı üye sayısına göredir (m.10/c).",
+        "Geçerli oy = YSK sandık dosyalarındaki parti ve bağımsız oylarının toplamı. Bağımsız aday en çok bir üyelik alır (varsayım).",
+        "Meclis üye sayısı nüfusa bağlıdır (m.5/b) ve tanım dosyasından okunur (Tanimlar/meclis-uye-sayilari.csv). Doğrulanmamış sayı sayfada uyarılır.",
+        "Ek oy \"yeni seçmenden\" gelirse geçerli oy toplamı da artar (baraj yükselir); \"en büyük partiden\" gelirse toplam değişmez.",
+        "Ayrıntı ve varsayımlar: docs/kararlar.md K36.",
+    ];
+
     /// <summary>Her raporun sonundaki ortak notlar: veri kaynağı, eşikler, eşleme sınırı.</summary>
     public static List<string> OrtakNotlar(SinirEsikleri? esikler)
     {

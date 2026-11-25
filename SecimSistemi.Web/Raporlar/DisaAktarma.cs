@@ -49,6 +49,10 @@ public static class DisaAktarmaUclari
         s.AddScoped<ErimeHazirlayici>();
         s.AddScoped<RaporKaynaklari>();
         s.AddScoped<BelgeHazirlayici>();
+        s.AddScoped<GrupHazirlayici>();
+        s.AddScoped<MeclisHazirlayici>();
+        // Meclis üye sayıları: Tanimlar/meclis-uye-sayilari.csv (Importer'dan uygulamanın çıktı klasörüne kopyalanır).
+        s.AddSingleton(_ => MeclisUyeTanimlari.Yukle());
         s.AddSingleton<PdfUretici>();
     }
 

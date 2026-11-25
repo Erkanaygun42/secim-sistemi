@@ -1,0 +1,120 @@
+@page "/oncelik"
+@inject GrupHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>Öncelik listesi</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Öncelik listesi</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Ilce is not { } ilce || _sonuc.Gruplar is null)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında yerel seçim verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İlçe" Value="@ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Erime.Ilceler)
+                {
+                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Oy türü" Value="@Metinler.Kod(_sonuc.Erime.OyTuru)" ValueChanged="OyTuruDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.Erime.Seriler)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Grup" Value="@(_sonuc.Sorgu.Grup ?? Hepsi)" ValueChanged="GrupDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                <MudSelectItem Value="@Hepsi">Bütün gruplar</MudSelectItem>
+                @foreach (var g in Enum.GetValues<MahalleGrubu>())
+                {
+                    <MudSelectItem Value="@GrupSorgusu.Kod(g)">@Metinler.Ad(g) (@_sonuc.Gruplar.Sayi(g))</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Karşılaştırılabilir dönem" Value="@(_sonuc.Sorgu.Donem?.ToString() ?? Hepsi)" ValueChanged="DonemDegisti"
+                       Variant="Variant.Outlined" Margin="Margin.Dense">
+                <MudSelectItem Value="@Hepsi">Bütün dönemler</MudSelectItem>
+                @foreach (var l in _sonuc.Oncelik.Where(l => l.DonemBaslangici is not null))
+                {
+                    <MudSelectItem Value="@l.DonemBaslangici!.Value.ToString()">@l.Donem (@l.Satirlar.Count mahalle)</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
+    <MudText Class="mb-3">
+        Her karşılaştırılabilir dönem ayrı listededir (farklı tabanlardan gelen kayıplar birlikte sıralanamaz). Sıra: kayıp oy
+        (büyükten küçüğe), eşitlikte mahallenin büyüklüğü. Oy kazanan mahalleler sondadır.
+    </MudText>
+
+    var listeler = _sonuc.SuzulmusOncelik();
+    @if (_sonuc.Sorgu.GrupSecimi is not null)
+    {
+        <MudText Typo="Typo.body2" Class="mb-2 soluk-yazi">Grup süzgeci açık: # sütunu mahallenin süzülmemiş dönem listesindeki sırasıdır.</MudText>
+    }
+    @if (listeler.Count == 0)
+    {
+        <MudAlert Severity="Severity.Info">Bu süzgeçle (@_sonuc.SuzgecOzeti) mahalle yok.</MudAlert>
+    }
+    @foreach (var l in listeler)
+    {
+        <MudText Typo="Typo.h5" Class="mt-4 mb-2">Dönem @l.Donem · @l.Satirlar.Count mahalle<Ipucu Tanim="SutunSozlugu.Donem" /></MudText>
+        <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mb-2 oncelik-tablosu">
+            <thead>
+                <tr>
+                    <th class="sayi">#</th>
+                    <SutunBasligi Tanim="SutunSozlugu.Mahalle" />
+                    <SutunBasligi Tanim="SutunSozlugu.Grup" />
+                    <SutunBasligi Tanim="SutunSozlugu.Kayip" Sag="true" />
+                    <SutunBasligi Baslik="Toplam oy" Tanim="SutunSozlugu.SonToplam" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.Buyukluk" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.Neden" />
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var s in l.Satirlar)
+                {
+                    <tr class="@(s.SupheliYillar.Count > 0 ? "satir-supheli" : "")">
+                        <td class="sayi">@s.Sira</td>
+                        <td><MudLink Href="@($"mahalle/{ilce.Kod}/{s.Grup.BirimKod}")">@s.Grup.BirimAdi</MudLink></td>
+                        <td><GrupEtiketi Grup="s.Grup.Grup" Egilim="s.Grup.Egilim" Not="@s.Grup.Not" /></td>
+                        <td class="sayi"><b>@Metinler.Oy(s.KayipOy)</b></td>
+                        <td class="sayi">@Metinler.Oy(s.Grup.SonToplamOy)</td>
+                        <td class="sayi">@(s.BuyuklukSirasi?.ToString() ?? Metinler.Bos)</td>
+                        <td class="cumle">@OncelikCumlesi.Yaz(s)</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+
+    <RaporNotlari Maddeler="RaporBelgeleri.OncelikNotlari" Esikler="_sonuc.Erime.Sinir?.Esikler" />
+}
+
+@code {
+    private const string Hepsi = "hepsi";
+
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+    [SupplyParameterFromQuery(Name = "grup")] public string? Grup { get; set; }
+    [SupplyParameterFromQuery(Name = "donem")] public int? Donem { get; set; }
+
+    private GrupSonuclari? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new GrupSorgusu(Ilce, OyTuru, Grup, Donem));
+
+    private void Git(GrupSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()));
+
+    // İlçe ya da oy türü değişince dönem süzgeci sıfırlanır (dönemler ilçeye göre değişir).
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod, Donem = null });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+    private void GrupDegisti(string kod) => Git(_sonuc!.Sorgu with { Grup = kod == Hepsi ? null : kod });
+    private void DonemDegisti(string yil) => Git(_sonuc!.Sorgu with { Donem = int.TryParse(yil, out var d) ? d : null });
+}

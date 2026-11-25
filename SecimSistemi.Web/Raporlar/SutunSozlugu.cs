@@ -93,6 +93,68 @@ public static class SutunSozlugu
     public static readonly SutunTanimi KaleOrani = new("Grup oranı",
         "2009 ilk %20 grubunun o seçimdeki ağırlıklı oranı: grubun DSP oyu ÷ grubun toplam oyu, yüzde.");
 
+    // ---------------- Mahalle grupları ve öncelik ----------------
+
+    public static readonly SutunTanimi Grup = new("Grup",
+        "Mahallenin kendi karşılaştırılabilir dönemindeki seyri. Kale: dönem başında güçlüydü, korudu. Erozyon: güçlüydü, kaybetti. " +
+        "Yükselen: zayıftı, kazandı. Zayıf: zayıftı, kazanamadı. Güçlü = dönem başında ilçe oranının üstünde ya da eşit.",
+        "Erozyon → 2009'da ilçenin üstündeydi, oranı en az %30 ve en az 10 oy düştü.");
+
+    public static readonly SutunTanimi DonemBasindakiGuc = new("Dönem başındaki güç",
+        "Taban oranı − ilçenin aynı yıldaki oranı, puan. Artı: dönem başında ilçe ortalamasının üstündeydi. Grubu bu belirler.",
+        "+2,87 → 2009'da ilçe oranından 2,87 puan yüksekti.");
+
+    public static readonly SutunTanimi BugunkuGuc = new("Bugünkü güç",
+        "Son oran − ilçenin son seçimdeki oranı, puan. Artı: bugün ilçe ortalamasının üstünde. 2x2 tablonun dikey ekseni.",
+        "+0,11 → 2024'te ilçe oranından 0,11 puan yüksek.");
+
+    public static readonly SutunTanimi Egilim = new("Eğilim",
+        "Dönem içindeki değişim, gürültü eşiğiyle: oy farkı ve oranın göreli değişimi eşiği aşmazsa \"değişmedi\" (eşik appsettings.json → Gruplama).",
+        "Değişmedi → oran %20 düştü ama eşik %30.");
+
+    public static readonly SutunTanimi OyDegisimi = new("Oy değişimi",
+        "Gerçek oy − beklenen oy (beklenen = taban oranı × son toplam oy). Eksi: kayıp, artı: kazanç. Kayıp oyun ters işaretlisi.",
+        "−434 → tabanını koruyabilseydi 434 oy daha alırdı.");
+
+    public static readonly SutunTanimi GoreliDegisim = new("Göreli değişim",
+        "Oranın taban oranına göre değişimi: son ÷ taban − 1. Taban oranı 0 ise boş.",
+        "−%92 → oran tabandakinin yüzde 8'ine indi.");
+
+    public static readonly SutunTanimi Neden = new("Neden öncelikli",
+        "Satırın tek cümlelik özeti: dönem başındaki ve bugünkü oran, ilçeye göre konumu, kayıp oy, mahallenin büyüklüğü, varsa sınır uyarısı.");
+
+    public static readonly SutunTanimi Buyukluk = new("Büyüklük sırası",
+        "Son seçimdeki toplam oya göre ilçedeki sırası (1 = en büyük). Seçmen sayısı YSK dosyalarında yok.",
+        "5 → ilçenin 5. büyük mahallesi.");
+
+    // ---------------- Meclis hesaplayıcısı ----------------
+
+    public static readonly SutunTanimi Liste = new("Liste", "Parti listesi ya da bağımsız aday.");
+
+    public static readonly SutunTanimi MeclisOyu = new("Oy", "Belediye meclisi oyu (ilçedeki bütün sandıkların toplamı).");
+
+    public static readonly SutunTanimi Baraj = new("Baraj",
+        "Geçerli oyun onda biri listenin oyundan çıkarılır; geriye oy kalmazsa liste üye alamaz (2972 m.23/a). " +
+        "Barajı geçmek için %10'dan fazlası gerekir.",
+        "%10,23 → geçti, ama geriye kalan oy azsa yine üye çıkmayabilir.");
+
+    public static readonly SutunTanimi KalanOy = new("Kalan oy",
+        "Oy − geçerli oyun onda biri. Üyelikler bu kalan oyların 1, 2, 3 … diye bölünmesiyle dağıtılır (düz D'Hondt değil).",
+        "34.971 oy, baraj 34.179 → kalan 792; bölme bu 792 ile yapılır.");
+
+    public static readonly SutunTanimi Bolmeyle = new("Bölmeyle",
+        "Kalan oyların bölünmesiyle kazanılan üyelik (üye sayısı − kontenjan kadar üyelik dağıtılır).");
+
+    public static readonly SutunTanimi KontenjanUye = new("Kontenjan",
+        "Kontenjan üyeliği; hepsi geçerli oyların en çoğunu alan partiye gider (2972 m.23/a). Sayısı üye sayısına göre (m.10/c): 45 üyede 5.");
+
+    public static readonly SutunTanimi ToplamUye = new("Üye", "Toplam meclis üyeliği: bölmeyle + kontenjan.");
+
+    public static readonly SutunTanimi EkOy = new("Gereken ek oy",
+        "DSP'nin o sayıda üyeye ulaşması için gereken en az ek oy. Yeni seçmenden: geçerli oy toplamı da artar. " +
+        "En büyük partiden: oy o partiden düşer, toplam değişmez.",
+        "+58.520 → DSP 58.520 oy daha alsaydı 1 üye çıkarırdı.");
+
     public static readonly SutunTanimi Pay = new("İlçe meclis oyundaki pay",
         "Mahallenin belediye meclisi oyunun ilçe toplamındaki payı. Sınır değişikliği bu payın ani değişiminden tespit edilir.",
         "%2,10 → ilçedeki meclis oylarının yüzde 2,1'i bu mahalleden.");

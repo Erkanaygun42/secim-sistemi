@@ -379,3 +379,21 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Gerekçe:** Kullanıcı isteği: satırın neden öncelikli olduğu tek cümlede okunmalı. Cümle şablondan üretildiği için
   her satırda aynı yapıdadır, sayı uydurmaz.
 
+### K39. Gruplar, öncelik ve meclis sayfaları
+- **Adresler:** `/gruplar?ilce=…&oy-turu=…`, `/oncelik?ilce=…&oy-turu=…&grup=erozyon&donem=2009`,
+  `/meclis?ilce=…&secim=…&uye=45&ek-oy=50000&kaynak=en-buyuk-parti`. Filtreler adreste (K19); sayfalar `GrupHazirlayici` ve
+  `MeclisHazirlayici` üzerinden aynı hesapları kullanır (Excel ve PDF sonraki adımda bunları kullanacak).
+- **Gruplar:** dört grubun sayısı, "bu eşikle kaç mahalle değişmedi", 2x2 tablo (satır: bugünkü güç ilçenin üstünde/altında,
+  sütun: dönem içi puan farkı < 0 / ≥ 0), noktalı grafik (renk ve işaret mahallenin dönemine göre; uçtaki birkaç mahallenin adı
+  yazılır, üst üste binecek ad yazılmaz) ve mahalle tablosu.
+- **Öncelik:** grup ve döneme göre süzülür; süzgeçte sıra numarası mahallenin süzülmemiş dönem listesindeki yeridir.
+- **Meclis:** üye sayısı tanım dosyasından gelir, sayfada 9–55 arasından değiştirilebilir. Üye sayısı doğrulanmadıysa sayfanın
+  başında turuncu uyarı vardır. Tanım dosyasında o yıl yoksa ilçenin en son tanımlı sayısı, o da yoksa 45 kullanılır ve
+  "tanım dosyasında yok" diye uyarılır (Esenyurt'ta 2024 dışındaki yıllar). DSP'ye eklenecek oy girilir; kaynak "yeni seçmen"
+  (varsayılan) ya da "en büyük parti"; barajı geçmek ve sonraki üç üyelik için gereken ek oy listelenir ("dene" bağlantısı o
+  değeri girer). Ek oy en büyük partinin oyundan fazlaysa senaryo hesaplanmaz, nedeni yazılır. DSP o seçimde listesizse
+  dağılım gösterilir, ek oy kapalıdır.
+- **Tanım dosyası:** Web projesi `SecimSistemi.Importer/Tanimlar/meclis-uye-sayilari.csv` dosyasını çıktı klasörüne kopyalar;
+  dosya tek yerde düzenlenir.
+- **Sayı biçimi:** puan farkı yuvarlandıktan sonra işaretlenir (−0,004 "0,00" yazılır, "−0,00" değil).
+

@@ -50,6 +50,41 @@ public static class RaporGrafikleri
         return grafikler;
     }
 
+    /// <summary>Grafikte adı yazılan uç nokta sayısı (diğerlerinin adı ipucunda ve tablodadır).</summary>
+    public const int EtiketliNokta = 6;
+
+    /// <summary>
+    /// 2x2 noktalı grafik: yatay eksen eğilim (dönem içi puan farkı), dikey eksen bugünkü güç (son oran − ilçenin son oranı).
+    /// Renk ve işaret mahallenin dönemine göre. Uçtaki birkaç mahallenin adı yazılır.
+    /// </summary>
+    public static DagilimGrafigi? GucEgilim(GrupSonuclari s)
+    {
+        var satirlar = (s.Gruplar?.Satirlar ?? []).Where(x => x.BugunkuGuc is not null && x.PuanFarki is not null).ToList();
+        if (satirlar.Count == 0) return null;
+
+        var donemler = satirlar.Select(x => DonemBilgisi(s, x.BirimKod)).Distinct().OrderBy(d => d.Baslangic).ToList();
+        var maxX = Math.Max(satirlar.Max(x => Math.Abs(x.PuanFarki!.Value)), 0.01m);
+        var maxY = Math.Max(satirlar.Max(x => Math.Abs(x.BugunkuGuc!.Value)), 0.01m);
+        var etiketli = satirlar.OrderByDescending(x => Math.Abs(x.PuanFarki!.Value) / maxX + Math.Abs(x.BugunkuGuc!.Value) / maxY)
+            .Take(EtiketliNokta).Select(x => x.BirimKod).ToHashSet();
+
+        var noktalar = satirlar.Select(x => new DagilimNoktasi(x.BirimAdi, x.PuanFarki!.Value, x.BugunkuGuc!.Value,
+                donemler.IndexOf(DonemBilgisi(s, x.BirimKod)),
+                $"{(x.Grup is { } g ? Metinler.Ad(g) : "grupsuz")} · dönem {DonemBilgisi(s, x.BirimKod).Ad}",
+                etiketli.Contains(x.BirimKod)))
+            .ToList();
+
+        return new DagilimGrafigi($"Bugünkü güç ve eğilim · {Metinler.Ad(s.Erime.OyTuru)}",
+            "Her nokta bir mahalle. Dikey: bugünkü güç (son oran − ilçenin son oranı, puan). Yatay: eğilim (dönem içi puan farkı). " +
+            "Renk ve işaret mahallenin karşılaştırılabilir dönemi. Grup (kale, erozyon …) dönem başındaki güce göredir; bu grafikteki kare ile aynı olmayabilir.",
+            "Eğilim: dönem içi puan farkı", "Bugünkü güç: ilçeye göre puan",
+            [.. donemler.Select((d, i) => ($"dönem {d.Ad}", i))], noktalar,
+            ["Güçlü ve yükselen", "Güçlü ama gerileyen", "Zayıf ve gerileyen", "Zayıf ama yükselen"]);
+    }
+
+    private static (string Ad, int Baslangic) DonemBilgisi(GrupSonuclari s, int kod) =>
+        s.Erime.Sinir?.Birim(kod) is { } b ? (b.Donem, b.DonemBaslangici) : (Metinler.Bos, int.MaxValue);
+
     /// <summary>Uzun mahalle adı çubuk etiketine sığsın diye kısaltılır (tam ad ipucunda).</summary>
     private static string Kisalt(string ad, int enCok) => ad.Length <= enCok ? ad : ad[..(enCok - 1)].TrimEnd() + "…";
 

@@ -101,6 +101,36 @@ public static class Metinler
         return $"{yil}'{ek}";
     }
 
+    public static string Ad(MahalleGrubu g) => g switch
+    {
+        MahalleGrubu.Kale => "Kale",
+        MahalleGrubu.Erozyon => "Erozyon",
+        MahalleGrubu.Yukselen => "Yükselen",
+        MahalleGrubu.Zayif => "Zayıf",
+        _ => g.ToString(),
+    };
+
+    /// <summary>Grubun tek satırlık tanımı (sayfada ve dosyada).</summary>
+    public static string Tanim(MahalleGrubu g) => g switch
+    {
+        MahalleGrubu.Kale => "dönem başında güçlüydü, korudu ya da artırdı",
+        MahalleGrubu.Erozyon => "dönem başında güçlüydü, kaybetti",
+        MahalleGrubu.Yukselen => "dönem başında zayıftı, kazandı",
+        MahalleGrubu.Zayif => "dönem başında zayıftı, kazanamadı",
+        _ => "",
+    };
+
+    public static string Ad(Egilim e) => e switch
+    {
+        Egilim.Kaybetti => "Kaybetti",
+        Egilim.Degismedi => "Değişmedi",
+        Egilim.Kazandi => "Kazandı",
+        _ => e.ToString(),
+    };
+
+    /// <summary>Göreli değişim (0,30 = %30), işaretli: +%30 / −%92.</summary>
+    public static string Goreli(decimal? v) => v is null ? Bos : Yuzde(v.Value);
+
     /// <summary>Yılın bulunma eki, okunuşa göre: 2009'da, 2014'te, 2002'de, 2006'da, 2010'da, 2040'ta.</summary>
     public static string Bulunma(int yil)
     {
@@ -143,7 +173,12 @@ public static class Metinler
     public static string Oran(decimal? v) => v is null ? Bos : v.Value.ToString("N2", Turkce);
 
     /// <summary>Yüzde puan farkı, işaretli: +0,16 / −0,41.</summary>
-    public static string Puan(decimal? v) => v is null ? Bos : (v.Value > 0 ? "+" : v.Value < 0 ? "−" : "") + Math.Abs(v.Value).ToString("N2", Turkce);
+    public static string Puan(decimal? v)
+    {
+        if (v is null) return Bos;
+        var r = Math.Round(v.Value, 2, MidpointRounding.AwayFromZero); // −0,004 "−0,00" değil "0,00" yazılsın
+        return (r > 0 ? "+" : r < 0 ? "−" : "") + Math.Abs(r).ToString("N2", Turkce);
+    }
 
     /// <summary>Oran (0–1) yüzde olarak, işaretli: +%48 / −%21.</summary>
     public static string Yuzde(decimal v) => (v > 0 ? "+" : v < 0 ? "−" : "") + "%" + Math.Abs(v * 100).ToString("N0", Turkce);

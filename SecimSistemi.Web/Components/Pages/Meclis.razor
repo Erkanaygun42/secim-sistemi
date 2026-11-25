@@ -1,0 +1,199 @@
+@page "/meclis"
+@inject MeclisHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>Meclis hesaplayıcı</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Belediye meclisi hesaplayıcı</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Ilce is not { } ilce || _sonuc.Secim is not { } secim)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında yerel seçim verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İlçe" Value="@ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Ilceler)
+                {
+                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="int" Label="Seçim" Value="@secim.Id" ValueChanged="SecimDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var s in _sonuc.Secimler)
+                {
+                    <MudSelectItem Value="@s.Id">@s.Yil · @s.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="int" Label="Meclis üye sayısı" Value="@_sonuc.UyeSayisi" ValueChanged="UyeDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var u in MeclisHazirlayici.KanundakiUyeSayilari)
+                {
+                    <MudSelectItem Value="@u">@u üye (kontenjan @MeclisHesabi.KontenjanSayisi(u))</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+        <div class="filtreler mt-3">
+            <MudNumericField T="long" Label="DSP'ye eklenecek oy" Value="@_sonuc.EkOy" ValueChanged="EkOyDegisti" Min="0" Step="1000"
+                             Variant="Variant.Outlined" Margin="Margin.Dense" DebounceInterval="600" Disabled="@(!_sonuc.DspVar)" />
+            <MudRadioGroup T="string" Value="@(_sonuc.Kaynak == EkOyKaynagi.EnBuyukParti ? MeclisSorgusu.EnBuyukParti : MeclisSorgusu.YeniSecmen)"
+                           ValueChanged="KaynakDegisti" Disabled="@(!_sonuc.DspVar)">
+                <MudRadio T="string" Value="@MeclisSorgusu.YeniSecmen" Color="Color.Primary">Yeni seçmenden (toplam oy artar)</MudRadio>
+                <MudRadio T="string" Value="@MeclisSorgusu.EnBuyukParti" Color="Color.Primary">En büyük partiden (toplam değişmez)</MudRadio>
+            </MudRadioGroup>
+        </div>
+    </MudPaper>
+
+    @if (_sonuc.UyeUyarisi is { } uyari)
+    {
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="mb-4">
+            <b>Üye sayısı doğrulanmadı.</b> @uyari
+        </MudAlert>
+    }
+    @if (_sonuc.Hata is { } hata)
+    {
+        <MudAlert Severity="Severity.Error" Dense="true" Class="mb-4">@hata</MudAlert>
+    }
+
+    @if (_sonuc.Mevcut is not { } m)
+    {
+        <MudAlert Severity="Severity.Info">@secim.Yil seçiminde @ilce.Ad belediye meclisi sonucu yok.</MudAlert>
+    }
+    else
+    {
+        var senaryo = _sonuc.Senaryo;
+        <MudText Class="mb-2">
+            <b>@ilce.Ad</b> · @secim.Yil · @m.UyeSayisi üye (@m.KontenjanSayisi kontenjan) · geçerli oy @Metinler.Oy(m.GecerliOy)
+            · baraj @Metinler.Oy(m.BarajOyu) oyun üstü<Ipucu Tanim="SutunSozlugu.Baraj" />
+            @if (m.KontenjanAlan is { } ka)
+            {
+                <span> · kontenjan: @ka</span>
+            }
+        </MudText>
+        @if (m.KuraListeleri.Count > 0)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+                Son üyelikte eşit paylar var (@string.Join(", ", m.KuraListeleri)): kanuna göre kura çekilir. Hesap üyeliği toplam oyu fazla olana verdi.
+            </MudAlert>
+        }
+
+        <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mb-4">
+            <thead>
+                <tr>
+                    <SutunBasligi Tanim="SutunSozlugu.Liste" />
+                    <SutunBasligi Tanim="SutunSozlugu.MeclisOyu" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.DspOrani" Baslik="%" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.Baraj" />
+                    <SutunBasligi Tanim="SutunSozlugu.KalanOy" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.Bolmeyle" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.KontenjanUye" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.ToplamUye" Sag="true" />
+                    @if (senaryo is not null)
+                    {
+                        <th class="sayi">+@Metinler.Oy(_sonuc.EkOy) oyla</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in GosterilecekListeler(m))
+                {
+                    var yeni = senaryo?.Liste(l.Ad);
+                    <tr class="@(l.Ad == MeclisSonuclari.Hedef ? "satir-hedef" : "")">
+                        <td>@l.Ad</td>
+                        <td class="sayi">@Metinler.Oy(l.Oy)</td>
+                        <td class="sayi">@Metinler.Oran(l.Oran)</td>
+                        <td>@(l.BarajiGecti ? "geçti" : Metinler.Bos)</td>
+                        <td class="sayi">@(l.BarajiGecti ? Metinler.Oy(l.KalanOy) : Metinler.Bos)</td>
+                        <td class="sayi">@l.Koltuk</td>
+                        <td class="sayi">@l.Kontenjan</td>
+                        <td class="sayi"><b>@l.Toplam</b></td>
+                        @if (senaryo is not null)
+                        {
+                            <td class="sayi">
+                                <b>@(yeni?.Toplam ?? 0)</b>
+                                @if ((yeni?.Toplam ?? 0) - l.Toplam is var fark && fark != 0)
+                                {
+                                    <span class="soluk"> (@(fark > 0 ? "+" : "−")@Math.Abs(fark))</span>
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+
+        @if (_sonuc.DspVar)
+        {
+            var dsp = m.Liste(MeclisSonuclari.Hedef)!;
+            var kaynakAdi = _sonuc.Kaynak == EkOyKaynagi.YeniSecmen ? "yeni seçmenden" : "en büyük partiden";
+            <MudText Typo="Typo.h5" Class="mb-1">DSP kaç oy daha alsaydı?<Ipucu Tanim="SutunSozlugu.EkOy" /></MudText>
+            <MudText Typo="Typo.body2" Class="mb-2">
+                DSP @Metinler.Oy(dsp.Oy) oy (%@Metinler.Oran(dsp.Oran)), @dsp.Toplam üye. Ek oy @kaynakAdi geliyor sayıldı.
+                Barajı geçmek tek başına üye getirmeyebilir: bölme, barajın üstünde kalan oyla yapılır.
+            </MudText>
+            <MudSimpleTable Dense="true" Bordered="true" Style="max-width: 640px" Class="mb-4">
+                <thead>
+                    <tr>
+                        <th>Hedef</th>
+                        <SutunBasligi Tanim="SutunSozlugu.EkOy" Sag="true" />
+                        <th class="sayi">DSP'nin oyu</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Barajı geçmek</td>
+                        <td class="sayi">@(_sonuc.BarajIcin is { } b ? (b == 0 ? "geçiyor" : "+" + Metinler.Oy(b)) : "ulaşılamaz")</td>
+                        <td class="sayi">@(_sonuc.BarajIcin is { } b2 ? Metinler.Oy(dsp.Oy + b2) : Metinler.Bos)</td>
+                        <td>@if (_sonuc.BarajIcin is > 0 and var bb) { <MudLink OnClick="@(() => EkOyDegisti(bb))">dene</MudLink> }</td>
+                    </tr>
+                    @foreach (var e in _sonuc.Esikler)
+                    {
+                        <tr>
+                            <td>@e.Koltuk üye</td>
+                            <td class="sayi"><b>+@Metinler.Oy(e.EkOy)</b></td>
+                            <td class="sayi">@Metinler.Oy(dsp.Oy + e.EkOy)</td>
+                            <td><MudLink OnClick="@(() => EkOyDegisti(e.EkOy))">dene</MudLink></td>
+                        </tr>
+                    }
+                    @if (_sonuc.Esikler.Count == 0)
+                    {
+                        <tr><td colspan="4">Bu kaynakla bir sonraki üyeliğe ulaşılamıyor.</td></tr>
+                    }
+                </tbody>
+            </MudSimpleTable>
+        }
+    }
+
+    <RaporNotlari Maddeler="RaporBelgeleri.MeclisNotlari" />
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "secim")] public int? Secim { get; set; }
+    [SupplyParameterFromQuery(Name = "uye")] public int? Uye { get; set; }
+    [SupplyParameterFromQuery(Name = "ek-oy")] public long? EkOy { get; set; }
+    [SupplyParameterFromQuery(Name = "kaynak")] public string? Kaynak { get; set; }
+
+    private MeclisSonuclari? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new MeclisSorgusu(Ilce, Secim, Uye, EkOy, Kaynak));
+
+    /// <summary>Üye alan, DSP ve %1'den fazla oy alan listeler; diğerleri tek satırda toplanmaz, gösterilmez.</summary>
+    private static IEnumerable<ListeSonucu> GosterilecekListeler(MeclisSonucu m) =>
+        m.Listeler.Where(l => l.Toplam > 0 || l.Ad == MeclisSonuclari.Hedef || l.Oran >= 1);
+
+    private void Git(MeclisSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()), replace: true);
+
+    // İlçe ya da seçim değişince seçilen üye sayısı sıfırlanır (tanım dosyasındaki sayı kullanılır).
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod, Secim = null, Uye = null });
+    private void SecimDegisti(int id) => Git(_sonuc!.Sorgu with { Secim = id, Uye = null });
+    private void UyeDegisti(int u) => Git(_sonuc!.Sorgu with { Uye = u });
+    private void EkOyDegisti(long x) => Git(_sonuc!.Sorgu with { EkOy = x <= 0 ? null : x });
+    private void KaynakDegisti(string k) => Git(_sonuc!.Sorgu with { Kaynak = k == MeclisSorgusu.EnBuyukParti ? k : null });
+}

@@ -146,3 +146,21 @@ td.donem-disi {
     font-size: 0.8rem;
     padding: 4px 6px !important;
 }
+
+/* Meclis hesaplayıcısında DSP satırı */
+.satir-hedef > td {
+    background-color: color-mix(in srgb, var(--mud-palette-secondary) 14%, white);
+    font-weight: 600;
+}
+
+/* Öncelik listesindeki cümle sütunu */
+.oncelik-tablosu td.cumle {
+    font-size: 0.85rem;
+    min-width: 420px;
+}
+
+/* 2x2 tablo */
+.dortlu td {
+    vertical-align: top;
+    width: 40%;
+}
