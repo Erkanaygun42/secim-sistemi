@@ -431,3 +431,16 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Genel kural (kullanıcı):** doğrulanmamış veriler tablolarda görünmeye devam eder, ama her yerde uyarıyla işaretlenir.
 - **Gerekçe:** Kullanıcı kararı.
 
+### K43. Sunum kapsamı ve indirme denetimi
+- **Kapsam (kullanıcı, 2026-11-25):** 6 Aralık'ta sistemi yalnızca kullanıcı kullanacak (sunum). Esenyurt'a ek olarak Şişli,
+  Adalar, Bakırköy; 2009, 2014, 2019, 2024; belediye meclisi, belediye başkanı, büyükşehir başkanı. Dosyalar elle indirilir;
+  otomatik indirme aracı yazılmaz (YSK kullanım koşullarında otomatik erişime izin ya da yasak yok; Türkiye geneli için YSK'dan
+  toplu veri talep edilecek). Bu ilçelerde belde yok. Kocaeli 6 Aralık sonrasına kaldı.
+- **İlçe tanımları:** `34-ŞİŞLİ`, `34-ADALAR`, `34-BAKIRKÖY` (dosya adında `sisli`, `adalar`, `bakirkoy`).
+- **Denetim (`dosya-denetle <klasör>`, `DosyaDenetimi`):** kontrol listesi = tanımlı ilçeler × yerel seçim yılları × ilin oy
+  türleri (İstanbul: 3). Hata: xlsx olmayan dosya, düzene uymayan ad (doğru ad tahmin edilebiliyorsa önerilir: küçük harf,
+  Türkçe harfler ASCII), açılamayan dosya, içeriği aynı iki dosya, aynı yılda iki ilçenin ortak mahalle kimliği. Uyarı: eksik
+  dosya, aynı ilçe ve yılın dosyalarında farklı sandık sayısı. Dosyada il, ilçe ya da oy türü bilgisi olmadığı için içerikten
+  yalnızca dolaylı çelişkiler yakalanır.
+- **`yukle-hepsi` önce denetimi çalıştırır:** hata varsa hiçbir dosya yüklenmez; eksik dosyalar bildirilir, mevcutlar yüklenir.
+

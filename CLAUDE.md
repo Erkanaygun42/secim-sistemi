@@ -56,6 +56,7 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   - `dotnet test`
   - `dotnet run --project SecimSistemi.Web`
   - `dotnet ef migrations add <Ad> --project SecimSistemi.Data --startup-project SecimSistemi.Web`
+  - `dotnet run --project SecimSistemi.Importer -- dosya-denetle data/raw` (indirme denetimi; yukle-hepsi de önce bunu çalıştırır)
   - `dotnet run --project SecimSistemi.Importer -- yukle-hepsi data/raw`
   - `dotnet run --project SecimSistemi.Importer -- mahalle listele|esleme-oner|esleme-yukle 34-ESENYURT`
   - `dotnet run --project SecimSistemi.Importer -- rapor erime 34-ESENYURT [--oy-turu belediye-baskani]` (csv: `data/out`, git'e girmez)

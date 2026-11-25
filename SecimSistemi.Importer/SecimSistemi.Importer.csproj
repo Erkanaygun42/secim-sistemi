@@ -23,4 +23,8 @@
     <UserSecretsId>8ca36aa4-2403-4f25-b165-b4e3cd6e8418</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="SecimSistemi.Tests" />
+  </ItemGroup>
+
 </Project>

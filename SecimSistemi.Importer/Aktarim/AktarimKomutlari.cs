@@ -14,8 +14,20 @@ internal static class AktarimKomutlari
 {
     private static readonly CultureInfo Turkce = CultureInfo.GetCultureInfo("tr-TR");
 
+    /// <summary>
+    /// Önce klasör denetimi (<see cref="DosyaDenetimi"/>): hata varsa hiçbir dosya yüklenmez; eksik dosyalar yalnızca bildirilir.
+    /// </summary>
     public static async Task<int> YukleHepsiAsync(string klasor, bool yenile)
     {
+        var denetim = DosyaDenetimi.Denetle(klasor);
+        DosyaDenetimi.Yazdir(denetim, Console.Out);
+        if (!denetim.Temiz)
+        {
+            Console.Error.WriteLine("Yükleme başlamadı: önce denetimdeki hataları düzeltin.");
+            return 1;
+        }
+        Console.WriteLine();
+
         var dosyalar = Directory.GetFiles(klasor, "*.xlsx")
             .Order(StringComparer.Ordinal)
             .Where(f => !DosyaKimligi.Coz(f).KontrolDosyasiMi)

@@ -19,6 +19,9 @@ public static class BolgeTanimlari
     public static readonly IReadOnlyDictionary<string, IlceTanimi> Ilceler = new Dictionary<string, IlceTanimi>
     {
         ["esenyurt"] = new("esenyurt", "34-ESENYURT", "ESENYURT", Istanbul),
+        ["sisli"] = new("sisli", "34-ŞİŞLİ", "ŞİŞLİ", Istanbul),
+        ["adalar"] = new("adalar", "34-ADALAR", "ADALAR", Istanbul),
+        ["bakirkoy"] = new("bakirkoy", "34-BAKIRKÖY", "BAKIRKÖY", Istanbul),
     };
 }
 

@@ -1,4 +1,4 @@
-﻿using SecimSistemi.Importer;
+using SecimSistemi.Importer;
 using SecimSistemi.Importer.Aktarim;
 using SecimSistemi.Importer.Mahalleler;
 using SecimSistemi.Importer.Rapor;
@@ -32,6 +32,12 @@ try
             return await MahalleKomutlari.EslemeOnerAsync(k[2]);
         case "mahalle" when k.Count == 3 && k[1] == "esleme-yukle":
             return await MahalleKomutlari.EslemeYukleAsync(k[2], s.Zorunlu("--kisi", "onaylı csv satırlarını karar tablosuna aktaran kişi"));
+        case "dosya-denetle" when k.Count == 2:
+        {
+            var sonuc = SecimSistemi.Importer.Okuma.DosyaDenetimi.Denetle(k[1]);
+            SecimSistemi.Importer.Okuma.DosyaDenetimi.Yazdir(sonuc, Console.Out);
+            return sonuc.Temiz ? 0 : 1;
+        }
         case "basliklari-denetle" when k.Count == 2:
             return BaslikDenetimi.Calistir(k[1]);
         case "incele" when k.Count == 2:
@@ -47,7 +53,8 @@ try
             Console.WriteLine("""
                 Kullanım:
                   yukle <dosya.xlsx> [--yenile]           Bir sandık dosyasını yükler
-                  yukle-hepsi <klasör> [--yenile]         Klasördeki bütün sandık dosyalarını yükler (kontrol dosyaları hariç)
+                  dosya-denetle <klasör>                  İndirme denetimi: kontrol listesi, eksik ve yanlış adlı dosyalar (veritabanına dokunmaz)
+                  yukle-hepsi <klasör> [--yenile]         Önce dosya-denetle; hata yoksa bütün sandık dosyalarını yükler
                   mahalle listele <ilçe kodu>             Mahallelerin seçimlerdeki varlığı ve sınır durumu
                   mahalle esleme-oner <ilçe kodu>         Ad benzerliği önerileri Tanimlar/mahalle-eslemeleri.csv'ye eklenir (onaylı sayılmaz)
                   mahalle esleme-yukle <ilçe kodu> --kisi <ad>
