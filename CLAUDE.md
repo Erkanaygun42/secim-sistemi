@@ -23,7 +23,7 @@
 | SecimSistemi.Tests | xunit | Toplam kontrolleri ve hesaplama kurallarının testleri |
 | SecimSistemi.Web | blazor | Panolar, raporlar, PDF/Excel çıktısı, kullanıcı girişi |
 
-Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain, Data ve Importer.
+Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain, Data, Importer ve Web.
 
 ## Veri modeli kuralları
 - Sonuçlar "uzun" biçimde tutulur: bölge, seçim, oy türü, parti ya da aday, oy sayısı. Yeni parti veya seçim tablo yapısını değiştirmez.
@@ -59,6 +59,7 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   - `dotnet run --project SecimSistemi.Importer -- yukle-hepsi data/raw`
   - `dotnet run --project SecimSistemi.Importer -- mahalle listele|esleme-oner|esleme-yukle 34-ESENYURT`
   - `dotnet run --project SecimSistemi.Importer -- rapor erime 34-ESENYURT [--oy-turu belediye-baskani]` (csv: `data/out`, git'e girmez)
+  - PDF için Chromium (her makinede bir kez, `dotnet build` sonrası): `powershell -ExecutionPolicy Bypass -File SecimSistemi.Web/bin/Debug/net10.0/playwright.ps1 install chromium`
 
 ## Pilot: İstanbul / Esenyurt
 - Pilot ilçe İstanbul/Esenyurt.
@@ -72,4 +73,6 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
 - Önce YSK Açık Veri Portalı'ndaki 2009–2024 verisiyle çalışılır; 1991–2007 il ve ilçe verisi Mart 2027'den sonra eklenir.
 - Sprint 2 (veri yükleyici) tamam. Toplam kontrol dosyaları (`yil_yerel_oy-turu_istanbul-ilceler.xlsx`) henüz yok; okuyucuları dosyalar gelince gerçek yapıya göre yazılacak.
 - Sprint 3 (mahalle analizi, erime raporu) tamam. Esenyurt'ta 2014–2019 arasında kurulan 23 mahallenin eşlemesi onay bekliyor; o zamana kadar her mahalle ayrı birim (docs/kararlar.md K6).
-- Sıradaki: Sprint 4 (sayfalar); görünümler ve `ErimeRaporuServisi` kullanılacak.
+- Sprint 4 (sayfalar, Excel ve PDF) tamam: `/karne`, `/mahalle/{ilçe}/{kod}`, `/erime`; dışa aktarma `/disa-aktar/{karne|mahalle|erime}.{xlsx|pdf}`.
+  Web Sprint 7'ye kadar yalnızca localhost'tan açılır (K16). Sınır kararı düzeltme ekranı Sprint 7'ye ertelendi (K17).
+- Sıradaki: Sprint 5 (yapım programına bakın). Harita Sprint 6'da.

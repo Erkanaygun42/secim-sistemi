@@ -139,3 +139,72 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   `mahalle esleme-yukle --kisi` komutu csv'deki onaylı satırları onaylanmış eşleme kararı olarak aktarır.
   csv artık yalnızca öneri ve aktarım dosyasıdır.
 - **Yetki:** TalepEden ve Onaylayan şimdilik serbest metindir. Rol ve yetki Sprint 7'de, düzeltme ekranı Sprint 4'te gelecek.
+  **Değişti (2026-11-25):** düzeltme ekranı Sprint 7'ye ertelendi, bkz. K17.
+
+## Sprint 4 — Sayfalar ve dışa aktarma (2026-11-25)
+
+### K16. Sprint 7'ye kadar yalnızca localhost
+- **Karar:** Web uygulaması yalnızca bu bilgisayardan açılır. Loopback dışından gelen her istek 403 alır
+  (`Program.cs`, ilk ara katman). `AllowedHosts` da `localhost;127.0.0.1;[::1]` ile sınırlıdır. Sunucuya kurulmaz.
+- **Gerekçe:** Giriş ve yetki Sprint 7'de gelir. "Partiye özel" analizler girişsiz bir adreste durmamalı. Kullanıcı seçimi.
+
+### K17. Düzeltme ekranı Sprint 7'ye ertelendi (K15 değişti)
+- **Karar:** Sınır kararı talep ve onay ekranı Sprint 4'te yapılmadı; Sprint 7'de giriş ve yetkiyle birlikte gelecek.
+  O zamana kadar kararlar `karar-talep` ve `karar-onayla` komutlarıyla girilir. Eşlemeler onay bekliyor; otomatik tespit
+  şimdilik yeterli.
+- **Gerekçe:** Talep eden ve onaylayan rollere bağlıdır. Roller olmadan ekran, herkesin her kararı onaylamasına izin verir.
+  Kullanıcı seçimi.
+
+### K18. Sayfalarda sınır eşikleri sabit
+- **Karar:** Sayfalar ve dışa aktarılan dosyalar varsayılan eşikleri kullanır (düşüş %25, artış %60, şüpheli %15;
+  `KarneServisi.Esikler`). Eşik değiştirme yalnızca komut satırındadır (`--dusus-esigi` ...).
+- **Gerekçe:** Aynı mahalle iki ekranda farklı durumda görünmesin. Eşikler insan kararlarıyla yeniden ayarlanınca kodda
+  değişir (K13). Kullanıcı seçimi.
+
+### K19. Filtreler ve sıra adreste; dosyalar aynı adresten
+- **Karar:** Karne `/karne?ilce=34-ESENYURT&secim=4&oy-turu=belediye-meclisi&sirala=dsp-orani&yon=azalan`,
+  erime `/erime?ilce=…&oy-turu=…`, mahalle `/mahalle/34-ESENYURT/119318`. Excel ve PDF bağlantıları
+  (`/disa-aktar/{karne|mahalle|erime}.{xlsx|pdf}`) aynı parametreleri taşır ve sayfanın kullandığı hazırlayıcıyı
+  (`KarneHazirlayici`, `ErimeHazirlayici`) çağırır. Eksik ya da geçersiz parametre varsayılana döner: ilk ilçe, en son seçim,
+  belediye meclisi, DSP oranı azalan. Seçim, adreste kimliğiyle (Id) yazılır; aynı yılda birden çok seçim olabilir.
+- **Gerekçe:** Bağlantı paylaşılabilir. Dosyada ekrandakiyle aynı tablo, aynı sırayla çıkar.
+
+### K20. Karnede sınır durumu ve şüpheli uyarısı seçilen yıla göre
+- **Karar:** Karnedeki "Dönem", o seçime kadarki son "Yeni" ya da "Sınırı değişti" seçiminden o seçime kadardır
+  (`BirimDonemi.DonemBaslangiciYil`). Uyarı, bu dönem içinde insan kararı olmayan bir şüpheli seçim varsa çıkar
+  (`SupheliYillar`). Son seçimde bu, K14'teki dönemle aynıdır. Sınır durumu belediye meclisi payından hesaplanır ve
+  bütün oy türlerinde aynıdır.
+- **Gerekçe:** 2014 karnesinde 2019'daki bir sınır değişikliği önemli değildir; 2024 karnesinde 2019 şüphesi önemlidir.
+- **Esenyurt sonucu (2024):** 3 birim uyarılı: Akçaburgaz, Namık Kemal, Yeşilkent.
+
+### K21. Karne sıralaması
+- **Karar:** Boş değerler (DSP pusulada değil, sınır durumu yok) iki yönde de en sondadır. Eşitlikte ad (Türkçe alfabe),
+  sonra kod. Sınır sütununda artan sıra önce dikkat isteyenleri getirir: şüpheli, dönemi şüpheli, sınırı değişti, yeni, sabit.
+  Sıralama sunucuda yapılır (`KarneSiralamasi`); ekran, Excel ve PDF aynı sırayı kullanır.
+- **Gerekçe:** "Pusulada değil" bir değer değildir; en büyük ya da en küçük oranın arasına karışmamalı.
+
+### K22. Excel ve PDF ortak belge modelinden
+- **Karar:** Raporlar önce `RaporBelgesi`'ne çevrilir (`RaporBelgeleri`), Excel ve PDF bu modelden yazılır. Ekrandaki
+  açıklama balonlarının yerine dosyada "Uyarı" sütunu vardır. Notlar sayfada ve dosyada aynı metindir.
+  Başlık bilgisi iki dosyada da ilk yerdedir: "PARTİYE ÖZEL — dağıtılmaz" ibaresi, rapor adı, filtre özeti, veri kaynağı ve
+  dayandığı yüklenmiş dosyalar (yükleme kaydından), üretim tarihi (Türkiye saati).
+  Dayandığı dosyalar: karnede seçilen dosya ile sınır analizinin kullandığı belediye meclisi dosyaları; mahalle ve erimede
+  ilçenin bütün yerel seçim dosyaları.
+- **Excel:** İlk sayfa "Bilgi". Her tablo ayrı sayfadır: sayılar sayı olarak yazılır, başlık satırı dondurulmuş ve süzgeçlidir,
+  toplam satırı süzgecin dışındadır. Boş değer "—" yazılır. Dönem grup satırları Excel'e yazılmaz; aynı bilgi "Dönem"
+  sütunundadır, böylece süzgeç ve sıralama bozulmaz. Beklenen ve kayıp oy tam sayıya, oranlar 4 ondalığa yuvarlanır
+  (hesap artıkları dosyaya girmesin; ekranda 2 ondalık).
+- **Gerekçe:** Tek model, iki çıktının birbirinden ayrışmasını önler.
+
+### K23. PDF: HtmlRenderer + Playwright, sunucu kendine istek atmaz
+- **Karar:** `PdfSablonu` (düz HTML, satır içi CSS) HtmlRenderer ile metne çevrilir. Chromium bu metni `SetContentAsync` ile
+  yükler ve A4 yatay basar. Her sayfanın altında ibare, rapor adı, üretim tarihi ve sayfa numarası yer alır. Chromium uygulama
+  boyunca bir kez açılır (`PdfUretici` singleton); ilk PDF ~3 sn, sonrakiler ~1 sn sürer (Esenyurt).
+- **Gerekçe:** Sayfanın adresini açıp basmak, Sprint 7'de girişle birlikte çerez ve oturum taşımayı gerektirirdi.
+- **Kurulum:** Chromium her makinede bir kez kurulur (CLAUDE.md). Linux sunucuda Türkçe karakterli bir yazı tipi
+  (ör. DejaVu) da kurulmalı; şablon "Segoe UI, Arial, DejaVu Sans" sırasıyla arar.
+
+### K24. Tests → Web referansı
+- **Karar:** Test projesi Web'e de başvurur: belge modeli, Excel, PDF şablonu ve gerçek PDF üretimi test edilir.
+  Gerçek PDF testi Chromium'un kurulu olmasını ister; kurulu değilse kurulum komutunu yazan bir hatayla düşer.
+- **Gerekçe:** Dışa aktarma kuralları (başlık bilgisi, biçimler, sıra) testsiz kalmamalı. Kullanıcı seçimi.
