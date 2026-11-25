@@ -88,3 +88,9 @@ h1:focus {
 .satir-son > td {
     font-weight: 600;
 }
+
+.disa-aktar {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}

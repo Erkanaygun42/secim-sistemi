@@ -17,8 +17,7 @@ var baglanti = builder.Configuration.GetConnectionString("Secim")
 builder.Services.AddDbContextFactory<SecimDbContext>(o => o.UseNpgsql(baglanti));
 
 builder.Services.AddMudServices();
-builder.Services.AddScoped<KarneHazirlayici>();
-builder.Services.AddScoped<ErimeHazirlayici>();
+builder.Services.AddDisaAktarma();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -60,6 +59,7 @@ app.UseRequestLocalization(new RequestLocalizationOptions
 app.UseAntiforgery();
 
 app.MapStaticAssets();
+app.MapDisaAktarma();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 

@@ -24,6 +24,10 @@ else
         }
     </MudText>
 
+    <div class="filtreler mb-4">
+        <DisaAktarButonlari Rapor="mahalle" Sorgu="@($"ilce={Uri.EscapeDataString(d.Ilce.Kod)}&birim={d.BirimKod}")" />
+    </div>
+
     @if (d.Sinir is { SupheliVar: true } sv)
     {
         <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-4">
@@ -112,11 +116,7 @@ else
         </MudSimpleTable>
     }
 
-    <RaporNotlari Esikler="d.Esikler">
-        <li>Puan farkı: DSP oranının bir önceki yerel seçime göre farkı, yüzde puan.</li>
-        <li>"—": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.</li>
-        <li>Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.</li>
-    </RaporNotlari>
+    <RaporNotlari Maddeler="RaporBelgeleri.MahalleNotlari" Esikler="d.Esikler" />
 }
 
 @code {

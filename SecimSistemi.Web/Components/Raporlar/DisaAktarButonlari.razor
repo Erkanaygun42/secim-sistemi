@@ -1,0 +1,15 @@
+@* Excel ve PDF indirme bağlantıları. Adres, sayfadaki filtrelerin aynısını taşır; dosyada ekrandaki tablo çıkar.
+   "download" özniteliği bağlantının Blazor yönlendiricisine değil, sunucudaki uç noktaya gitmesini sağlar. *@
+
+<div class="disa-aktar">
+    <MudButton Href="@($"disa-aktar/{Rapor}.xlsx?{Sorgu}")" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.TableView" UserAttributes="@Indir">Excel'e aktar</MudButton>
+</div>
+
+@code {
+    /// <summary>karne, mahalle ya da erime.</summary>
+    [Parameter, EditorRequired] public string Rapor { get; set; } = "";
+    [Parameter, EditorRequired] public string Sorgu { get; set; } = "";
+
+    private static readonly Dictionary<string, object> Indir = new() { ["download"] = "" };
+}

@@ -31,6 +31,8 @@ else
                     <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
                 }
             </MudSelect>
+            <MudSpacer />
+            <DisaAktarButonlari Rapor="erime" Sorgu="@_sonuc.Sorgu.SorguMetni()" />
         </div>
     </MudPaper>
 
@@ -174,12 +176,7 @@ else
         </tbody>
     </MudSimpleTable>
 
-    <RaporNotlari Esikler="_sonuc.Sinir?.Esikler">
-        <li>Korunma = son oran ÷ taban oranı (1 = oran korundu). Beklenen oy = taban oranı × son seçimdeki toplam oy.
-            Kayıp oy = beklenen − gerçek; eksi değer, DSP'nin tabanın üstünde oy aldığını gösterir.</li>
-        <li>Son seçim: o seride DSP'nin kendi listesiyle pusulada olduğu en son yerel seçim.</li>
-        <li>Toplam oy = parti ve bağımsız aday oylarının toplamı. Oranlar yüzde, puan farkı yüzde puandır.</li>
-    </RaporNotlari>
+    <RaporNotlari Maddeler="RaporBelgeleri.ErimeNotlari" Esikler="_sonuc.Sinir?.Esikler" />
 }
 
 @code {

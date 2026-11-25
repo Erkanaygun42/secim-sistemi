@@ -1,19 +1,17 @@
-@* Rapor sayfalarının altındaki ortak notlar: rapora özel maddeler, veri kaynağı, sınır eşikleri ve eşleme sınırı. *@
+@* Rapor sayfalarının altındaki notlar: rapora özel maddeler ve ortak notlar (veri kaynağı, sınır eşikleri, eşleme sınırı).
+   Metinler RaporBelgeleri'nden gelir; Excel ve PDF'teki notlarla aynıdır. *@
 
 <MudPaper Outlined="true" Class="pa-4 mt-4 rapor-notlari">
     <MudText Typo="Typo.subtitle2" GutterBottom="true">Notlar</MudText>
     <ul>
-        @ChildContent
-        <li>Veri kaynağı: @Metinler.VeriKaynagi.</li>
-        @if (Esikler is not null)
+        @foreach (var m in Maddeler.Concat(RaporBelgeleri.OrtakNotlar(Esikler)))
         {
-            <li>@Metinler.Esikler(Esikler) ✓ = insan kararıyla doğrulandı.</li>
+            <li>@m</li>
         }
-        <li>@Metinler.EslemeNotu</li>
     </ul>
 </MudPaper>
 
 @code {
-    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter, EditorRequired] public IReadOnlyList<string> Maddeler { get; set; } = [];
     [Parameter] public SinirEsikleri? Esikler { get; set; }
 }

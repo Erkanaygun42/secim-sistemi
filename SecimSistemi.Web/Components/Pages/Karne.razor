@@ -36,6 +36,8 @@ else
                     <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
                 }
             </MudSelect>
+            <MudSpacer />
+            <DisaAktarButonlari Rapor="karne" Sorgu="@_sonuc.Sorgu.SorguMetni()" />
         </div>
     </MudPaper>
 
@@ -118,11 +120,7 @@ else
         </tfoot>
     </MudSimpleTable>
 
-    <RaporNotlari Esikler="k.Esikler">
-        <li>Toplam oy = parti ve bağımsız aday oylarının toplamı (YSK sandık dosyalarında geçerli oy sütunu yok). Oran yüzde olarak verilir.</li>
-        <li>"—": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.</li>
-        <li>Dönem: o seçime göre karşılaştırılabilir dönem (son sınır değişikliğinden o seçime). Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.</li>
-    </RaporNotlari>
+    <RaporNotlari Maddeler="RaporBelgeleri.KarneNotlari" Esikler="k.Esikler" />
 }
 
 @code {
