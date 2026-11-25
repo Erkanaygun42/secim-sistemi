@@ -64,6 +64,24 @@ public sealed record BirimDonemi(int BirimKod, string BirimAdi, int DonemBaslang
 {
     public bool SupheliVar => Yillar.Any(y => y.Sonuc == SinirDurumu.Supheli && y.Yil >= DonemBaslangici);
     public string Donem => DonemBaslangici == DonemSonu ? $"{DonemSonu}" : $"{DonemBaslangici}–{DonemSonu}";
+
+    /// <summary>Birimin o yıldaki durumu; analizde o yıl yoksa boş.</summary>
+    public BirimYilDurumu? Durum(int yil) => Yillar.FirstOrDefault(d => d.Yil == yil);
+
+    /// <summary>
+    /// <paramref name="yil"/> seçimine göre karşılaştırılabilir dönemin başı: o yıla kadarki son "Yeni" ya da "SiniriDegisti"
+    /// seçimi, yoksa ilk seçim. Son seçim için <see cref="DonemBaslangici"/> ile aynıdır.
+    /// </summary>
+    public int DonemBaslangiciYil(int yil) =>
+        Yillar.LastOrDefault(d => d.Yil <= yil && d.Sonuc is SinirDurumu.Yeni or SinirDurumu.SiniriDegisti)?.Yil
+        ?? Yillar[0].Yil;
+
+    /// <summary><paramref name="yil"/> seçimine göre dönem içindeki (o yıl dahil) şüpheli seçimler. İnsan kararı olanlar şüpheli değildir.</summary>
+    public IReadOnlyList<BirimYilDurumu> SupheliYillar(int yil)
+    {
+        var baslangic = DonemBaslangiciYil(yil);
+        return Yillar.Where(d => d.Yil >= baslangic && d.Yil <= yil && d.Sonuc == SinirDurumu.Supheli).ToList();
+    }
 }
 
 public sealed record SinirAnaliziSonucu(SinirEsikleri Esikler, IReadOnlyList<int> Yillar, IReadOnlyList<BirimDonemi> Birimler)
