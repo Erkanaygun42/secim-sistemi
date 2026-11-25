@@ -2,9 +2,10 @@ namespace SecimSistemi.Web.Raporlar;
 
 /// <summary>
 /// Adresteki rapor adı ve filtrelerden <see cref="RaporBelgesi"/> hazırlar. Sayfalarla aynı hazırlayıcıları kullanır;
-/// böylece dosyada ekrandaki tablo çıkar. Raporlar: karne, mahalle (ilce, birim), erime.
+/// böylece dosyada ekrandaki tablo çıkar. Raporlar: karne, mahalle (ilce, birim), erime, gruplar, oncelik, meclis.
 /// </summary>
-public sealed class BelgeHazirlayici(KarneHazirlayici karne, ErimeHazirlayici erime, RaporKaynaklari kaynaklar, TimeProvider zaman)
+public sealed class BelgeHazirlayici(KarneHazirlayici karne, ErimeHazirlayici erime, GrupHazirlayici grup, MeclisHazirlayici meclis,
+    RaporKaynaklari kaynaklar, TimeProvider zaman)
 {
     public async Task<RaporBelgesi?> HazirlaAsync(string rapor, IQueryCollection q, CancellationToken ct = default)
     {
@@ -29,6 +30,19 @@ public sealed class BelgeHazirlayici(KarneHazirlayici karne, ErimeHazirlayici er
                 var e = await erime.HazirlaAsync(ErimeSorgusu.Oku(q), ct);
                 if (e.Ilce is null || e.Seriler.Count == 0) return null;
                 return RaporBelgeleri.Erime(e, await kaynaklar.ListeleAsync(e.Ilce.Id, ct: ct), uretim);
+            }
+            case "gruplar" or "oncelik":
+            {
+                var g = await grup.HazirlaAsync(GrupSorgusu.Oku(q), ct);
+                if (g.Ilce is null || g.Gruplar is null) return null;
+                var k = await kaynaklar.ListeleAsync(g.Ilce.Id, ct: ct);
+                return rapor == "gruplar" ? RaporBelgeleri.Gruplar(g, k, uretim) : RaporBelgeleri.Oncelik(g, k, uretim);
+            }
+            case "meclis":
+            {
+                var m = await meclis.HazirlaAsync(MeclisSorgusu.Oku(q), ct);
+                if (m.Ilce is null || m.Secim is null || m.Mevcut is null) return null;
+                return RaporBelgeleri.Meclis(m, await kaynaklar.ListeleAsync(m.Ilce.Id, m.Secim.Id, Domain.OyTuru.BelediyeMeclisi, ct), uretim);
             }
             default:
                 return null;

@@ -397,3 +397,27 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   dosya tek yerde düzenlenir.
 - **Sayı biçimi:** puan farkı yuvarlandıktan sonra işaretlenir (−0,004 "0,00" yazılır, "−0,00" değil).
 
+### K40. Meclis hesabının basın kaynaklı doğrulaması (resmî değil)
+- **Karar:** `MeclisDogrulamaTestleri` gerçek Esenyurt oylarıyla (sandık toplamları, veritabanından 2026-11-25) iki seçimi
+  basında geçen dağılımla karşılaştırır; testler `[Trait("Kaynak", "basın")]` ile "resmî değil, basın" olarak işaretlidir:
+  - **2019, 45 üye:** AK Parti listesi 27 (25 AK Parti + 2 MHP), CHP listesi 18 (16 CHP + 2 İYİ Parti), HDP 0. Kaynak (kullanıcının
+    ilettiği): https://www.sozcu.com.tr/akp-mhp-grubu-ile-chp-iyi-parti-grubu-arasinda-oylama-krizi-wp6736514
+  - **2024, 45 üye:** CHP 28, AK Parti listesi 17 (14 AK Parti + 3 MHP). Kaynak (kullanıcının ilettiği):
+    https://www.aydinlik.com.tr/haber/esenyurt-belediyesi-hangi-partiden-kim-yonetiyor-593361
+  Hesap ikisini de tutturur. 2019'da HDP %11,12 ile barajı geçer ama 0 üye alır (barajın üstünde 4.880 oy); bu, kalan oyla
+  bölmenin (K36) basın sayısıyla örtüştüğünü gösterir. Haber metinleri tarafımızdan okunmadı; sayılar kullanıcıdan.
+- **2014:** resmî dağılım bekleniyor; test açık (atlanıyor). Kanunun okunuşuna göre HDP %10,23 ile 0 üye almalı.
+- **Sınır:** basın sayıları seçimden sonraki parti değişikliklerini içerebilir ve liste içindeki partileri ayrı sayar; hesap
+  listeyi sayar. YSK'nın ilan ettiği resmî dağılım gelince testler onunla değiştirilecek. Üye sayıları (45) da doğrulanmadı.
+
+### K41. Gruplar, öncelik ve meclis için Excel ve PDF
+- **Karar:** `/disa-aktar/{gruplar|oncelik|meclis}.{xlsx|pdf}` sayfanın adresindeki filtrelerle aynı hazırlayıcıları kullanır.
+  - **Gruplar:** grup sayıları ve eşik, 2x2 tablo (PDF'te noktalı grafikle), mahalle tablosu.
+  - **Öncelik:** süzgeçten geçen her dönem ayrı bölüm (Excel'de ayrı sayfa); her satırda neden öncelikli cümlesi; dosya adında
+    süzgeç (`oncelik_34-ESENYURT_belediye-meclisi_erozyon_2009`).
+  - **Meclis:** dağılım (ek oy varsa "+X oyla üye" sütunu), DSP için gereken ek oy. DSP satırı kalın.
+- **Uyarı alanı:** belge modeline `Uyari` eklendi; PDF'te başlık bilgisinin altında turuncu kutu, Excel'de Bilgi sayfasında
+  "Uyarı" satırı. Meclis raporunda doğrulanmamış üye sayısı burada yazılır.
+- **Vurgu satırı:** yeni satır türü `Vurgu` (kalın, sıranın herhangi bir yerinde); `Toplam` en sonda kalır ve Excel süzgecinin
+  dışındadır.
+

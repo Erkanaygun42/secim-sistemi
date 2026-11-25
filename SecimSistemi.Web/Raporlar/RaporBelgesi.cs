@@ -23,8 +23,10 @@ public enum SatirTuru
     Uyari,
     /// <summary>Grup başlığı (dönem, seri); yalnızca ilk hücre doludur.</summary>
     Grup,
-    /// <summary>Toplam satırı (kalın).</summary>
+    /// <summary>Toplam satırı (kalın; Excel'de süzgecin dışında, en sonda).</summary>
     Toplam,
+    /// <summary>Öne çıkan satır (kalın; örnek: meclis tablosunda DSP). Sıranın herhangi bir yerinde olabilir.</summary>
+    Vurgu,
 }
 
 /// <param name="Tanim">Sütunun açıklaması ve örneği (<see cref="SutunSozlugu"/>); "Bu rapor nasıl okunur" bölümüne girer.</param>
@@ -88,8 +90,9 @@ public sealed record KaynakListesi(IReadOnlyList<string> Dosyalar, DateTime? Son
 /// <param name="Kaynaklar">Raporun dayandığı yüklenmiş YSK dosyaları. Başlıkta yalnızca özeti, sonda tam listesi yer alır.</param>
 /// <param name="Uretim">Üretim zamanı, Türkiye saati.</param>
 /// <param name="DosyaAdi">Uzantısız dosya adı.</param>
+/// <param name="Uyari">Başlık bilgisinin hemen altında öne çıkan uyarı (örnek: meclis üye sayısı doğrulanmadı); boşsa yok.</param>
 public sealed record RaporBelgesi(string Baslik, string FiltreOzeti, KaynakListesi Kaynaklar, DateTime Uretim,
-    IReadOnlyList<TabloBolumu> Bolumler, IReadOnlyList<string> Notlar, string DosyaAdi)
+    IReadOnlyList<TabloBolumu> Bolumler, IReadOnlyList<string> Notlar, string DosyaAdi, string? Uyari = null)
 {
     public string UretimMetni => Uretim.ToString("d MMMM yyyy HH:mm", Metinler.Turkce) + " (Türkiye saati)";
 

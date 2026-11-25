@@ -22,6 +22,7 @@
         .bilgi th { text-align: left; width: 110px; vertical-align: top; padding: 2px 8px 2px 0; color: #555; }
         .bilgi td { padding: 2px 0; }
         .aciklama { margin: 0 0 4px; color: #444; }
+        .uyari-kutusu { background: #fff3e0; border-left: 4px solid #ef6c00; padding: 5px 8px; margin: 4px 0 8px; color: #5d3200; }
         .grafik-kutusu { break-inside: avoid; margin: 4px 0 8px; max-width: 200mm; }
         table.veri { border-collapse: collapse; width: 100%; }
         table.veri th, table.veri td { border: 0.5px solid #bbb; padding: 2px 4px; vertical-align: top; }
@@ -54,6 +55,10 @@
         <tr><th>Veri kaynağı</th><td>@Belge.Kaynaklar.Ozet (dosyaların listesi en sonda)</td></tr>
         <tr><th>Üretim tarihi</th><td>@Belge.UretimMetni</td></tr>
     </table>
+    @if (Belge.Uyari is not null)
+    {
+        <div class="uyari-kutusu"><b>Uyarı:</b> @Belge.Uyari</div>
+    }
 
     @foreach (var bolum in Belge.Bolumler)
     {
@@ -154,7 +159,7 @@
     private static string SatirSinifi(SatirTuru t) => t switch
     {
         SatirTuru.Uyari => "uyari",
-        SatirTuru.Toplam => "toplam",
+        SatirTuru.Toplam or SatirTuru.Vurgu => "toplam",
         _ => "",
     };
 

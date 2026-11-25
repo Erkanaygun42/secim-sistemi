@@ -36,6 +36,11 @@ else
                     <MudSelectItem Value="@u">@u üye (kontenjan @MeclisHesabi.KontenjanSayisi(u))</MudSelectItem>
                 }
             </MudSelect>
+            <MudSpacer />
+            @if (_sonuc.Mevcut is not null)
+            {
+                <DisaAktarButonlari Rapor="meclis" Sorgu="@_sonuc.Sorgu.SorguMetni()" />
+            }
         </div>
         <div class="filtreler mt-3">
             <MudNumericField T="long" Label="DSP'ye eklenecek oy" Value="@_sonuc.EkOy" ValueChanged="EkOyDegisti" Min="0" Step="1000"

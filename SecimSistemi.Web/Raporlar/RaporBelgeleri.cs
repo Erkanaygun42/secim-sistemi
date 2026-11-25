@@ -9,7 +9,7 @@ namespace SecimSistemi.Web.Raporlar;
 /// ekrandaki açıklama balonlarının yerine "Uyarı" sütunu kullanılır (dosyada balon yok). Sütun açıklamaları
 /// <see cref="SutunSozlugu"/>'nden gelir ve PDF'te "Bu rapor nasıl okunur" bölümünü oluşturur.
 /// </summary>
-public static class RaporBelgeleri
+public static partial class RaporBelgeleri
 {
     // Rapora özel genel notlar (sütun açıklamaları sözlükte); sayfalar da aynı metinleri gösterir.
     public static readonly string[] KarneNotlari =

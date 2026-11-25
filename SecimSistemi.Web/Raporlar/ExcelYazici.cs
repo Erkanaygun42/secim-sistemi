@@ -60,6 +60,11 @@ public static class ExcelYazici
         Satir("Filtre", b.FiltreOzeti);
         Satir("Veri kaynağı", b.Kaynaklar.Ozet);
         Satir("Üretim tarihi", b.UretimMetni);
+        if (b.Uyari is not null)
+        {
+            s.Range(r, 1, r, 2).Style.Fill.SetBackgroundColor(XLColor.FromHtml("#FFF3E0")).Font.SetBold();
+            Satir("Uyarı", b.Uyari);
+        }
 
         Baslik("Bu rapor nasıl okunur");
         foreach (var t in b.Okuma) Satir(t.Ad, t.Aciklama, t.Ornek is null ? null : "Örnek: " + t.Ornek);
@@ -108,7 +113,7 @@ public static class ExcelYazici
                 Hucre(s.Cell(r, c + 1), bolum.Sutunlar[c].Tur, c < satir.Degerler.Count ? satir.Degerler[c] : null);
             }
 
-            if (satir.Tur == SatirTuru.Toplam) aralik.Style.Font.SetBold();
+            if (satir.Tur is SatirTuru.Toplam or SatirTuru.Vurgu) aralik.Style.Font.SetBold();
             r++;
         }
 
