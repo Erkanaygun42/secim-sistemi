@@ -7,21 +7,33 @@ namespace SecimSistemi.Tests.Web;
 /// <summary>Tek renk ayarı ve SVG grafik çizimi.</summary>
 public class GrafikVeGorunumTestleri
 {
-    private static IConfiguration Ayar(string? renk) =>
-        new ConfigurationBuilder().AddInMemoryCollection(renk is null ? [] : [new("Gorunum:AnaRenk", renk)]).Build();
+    private static IConfiguration Ayar(string? renk, string? ikinci = null) =>
+        new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?> { ["Gorunum:AnaRenk"] = renk, ["Gorunum:IkinciRenk"] = ikinci }.Where(x => x.Value is not null)).Build();
 
     [Fact]
     public void AnaRenk_AyardanOkunur_YoksaLogoMavisi()
     {
-        Assert.Equal("#21bcec", Gorunum.Oku(Ayar(null)).AnaRenk);
+        Assert.Equal("#16c0ed", Gorunum.Oku(Ayar(null)).AnaRenk);
         Assert.Equal("#003399", Gorunum.Oku(Ayar("#003399")).AnaRenk);
         Assert.Equal("#003399", Gorunum.Oku(Ayar("#003399")).SeriRengi(0)); // grafiklerin ilk serisi ana renk
+    }
+
+    [Fact]
+    public void IkinciRenk_AyardanOkunur_YoksaLogoKirmizisi_GrafikteKullanilmaz()
+    {
+        var g = Gorunum.Oku(Ayar(null));
+
+        Assert.Equal("#f04248", g.IkinciRenk);
+        Assert.Equal("#aa0000", Gorunum.Oku(Ayar(null, "#AA0000")).IkinciRenk);
+        Assert.DoesNotContain(g.IkinciRenk, g.SeriRenkleri);
+        Assert.Contains("Gorunum:IkinciRenk", Assert.Throws<InvalidOperationException>(() => Gorunum.Oku(Ayar(null, "kırmızı"))).Message);
     }
 
     [Theory]
     [InlineData("mavi")]
     [InlineData("#12345")]
-    [InlineData("21bcec")]
+    [InlineData("16c0ed")]
     public void AnaRenk_GecersizseAnlasilirHata(string renk)
     {
         var e = Assert.Throws<InvalidOperationException>(() => Gorunum.Oku(Ayar(renk)));
@@ -29,7 +41,7 @@ public class GrafikVeGorunumTestleri
     }
 
     [Theory]
-    [InlineData("#21bcec")]
+    [InlineData("#16c0ed")]
     [InlineData("#f2a600")]
     [InlineData("#003399")]
     public void KoyuTon_AnaRenktenTuretilir_BeyazUzerindeOkunur(string renk)

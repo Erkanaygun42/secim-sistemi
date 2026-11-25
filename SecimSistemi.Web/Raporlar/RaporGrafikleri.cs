@@ -23,29 +23,31 @@ public static class RaporGrafikleri
     }
 
     /// <summary>
-    /// Seçili seride en çok oy kaybeden mahalleler (kayıp oy = beklenen − gerçek, her mahallenin kendi dönemine göre).
-    /// Kaybı olmayan (tabanın üstünde oy alan) mahalleler girmez; hiç yoksa boş.
+    /// Seçili seride en çok oy kaybeden mahalleler; her karşılaştırılabilir dönem için ayrı grafik, tablodaki dönem
+    /// gruplamasıyla aynı sırada (en uzun dönem önce). Farklı dönemlerin kayıpları tek sıralamada karışmaz (K6, K14).
+    /// Kayıp oy = beklenen − gerçek. Kaybı olmayan (tabanın üstünde oy alan) mahalleler girmez; kaybı olan mahallesi
+    /// olmayan dönemin grafiği yoktur.
     /// </summary>
-    public static CubukGrafigi? EnCokKaybeden(ErimeSonucu e)
+    public static IReadOnlyList<CubukGrafigi> EnCokKaybedenler(ErimeSonucu e)
     {
-        if (e.Rapor is not { } r) return null;
-        var cubuklar = r.Satirlar
-            .Where(s => s.KayipOy > 0)
-            .OrderByDescending(s => s.KayipOy).ThenBy(s => s.BirimKod)
-            .Take(KaybedenSayisi)
-            .Select(s =>
-            {
-                var donem = e.Sinir?.Birim(s.BirimKod)?.Donem ?? Metinler.Bos;
-                return new Cubuk($"{Kisalt(s.BirimAdi, 26)} ({donem})", s.KayipOy!.Value,
-                    $"{s.BirimAdi} · dönem {donem} · taban %{Metinler.Oran(s.TabanOrani)} → son %{Metinler.Oran(s.SonOrani)}",
-                    e.Uyari(s.BirimKod) is not null);
-            })
-            .ToList();
-        if (cubuklar.Count == 0) return null;
-        return new CubukGrafigi($"En çok oy kaybeden {cubuklar.Count} mahalle · {Metinler.Ad(e.OyTuru)}",
-            "Kayıp oy = beklenen − gerçek; her mahalle kendi karşılaştırılabilir dönemine (parantez içinde) göre. " +
-            "Dönemi kısa olan mahallenin kaybı daha kısa bir sürede oluşmuştur. ⚠: sınır şüphesi var.",
-            "oy", cubuklar);
+        var grafikler = new List<CubukGrafigi>();
+        foreach (var grup in e.DonemGruplari().Where(g => g.Key != Metinler.Bos))
+        {
+            var cubuklar = grup
+                .Where(s => s.KayipOy > 0)
+                .OrderByDescending(s => s.KayipOy).ThenBy(s => s.BirimKod)
+                .Take(KaybedenSayisi)
+                .Select(s => new Cubuk(Kisalt(s.BirimAdi, 36), s.KayipOy!.Value,
+                    $"{s.BirimAdi} · taban %{Metinler.Oran(s.TabanOrani)} → son %{Metinler.Oran(s.SonOrani)}",
+                    e.Uyari(s.BirimKod) is not null))
+                .ToList();
+            if (cubuklar.Count == 0) continue;
+            grafikler.Add(new CubukGrafigi(
+                $"En çok oy kaybeden {cubuklar.Count} mahalle · dönem {grup.Key} · {Metinler.Ad(e.OyTuru)}",
+                $"{grup.Count()} mahalle içinden. Kayıp oy = beklenen − gerçek; taban {grup.Key[..4]} seçimi. ⚠: sınır şüphesi var.",
+                "oy", cubuklar));
+        }
+        return grafikler;
     }
 
     /// <summary>Uzun mahalle adı çubuk etiketine sığsın diye kısaltılır (tam ad ipucunda).</summary>

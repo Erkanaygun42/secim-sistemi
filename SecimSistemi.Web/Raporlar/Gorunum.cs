@@ -4,33 +4,47 @@ using System.Text.RegularExpressions;
 namespace SecimSistemi.Web.Raporlar;
 
 /// <summary>
-/// Görünüm ayarları. Ana renk tek yerde durur: <c>appsettings.json</c> → <c>"Gorunum": { "AnaRenk": "#21bcec" }</c>.
-/// Varsayılan, DSP logosundaki mavidir. Tonu değiştirmek için yalnızca bu ayarı değiştirip uygulamayı yeniden başlatın.
+/// Görünüm ayarları. Renkler tek yerde durur: <c>appsettings.json</c> →
+/// <c>"Gorunum": { "AnaRenk": "#16c0ed", "IkinciRenk": "#f04248" }</c>. Varsayılanlar DSP logosunun mavisi ve kırmızısıdır.
+/// Tonu değiştirmek için yalnızca bu ayarı değiştirip uygulamayı yeniden başlatın.
 /// <list type="bullet">
-/// <item><see cref="AnaRenk"/>: "partiye özel" bandı, üst çubuğun alt çizgisi, grafiklerin ilk serisi, vurgular.</item>
+/// <item><see cref="AnaRenk"/>: üst çubuğun zemini, "partiye özel" bandı, PDF başlığının çizgisi, grafiklerin ilk serisi.</item>
+/// <item><see cref="IkinciRenk"/>: logo kırmızısı. Şimdilik hiçbir yerde kullanılmaz; uyarı renkleriyle (sarı, kırmızı) karışmasın.</item>
 /// <item><see cref="Koyu"/>: aynı tonun koyulaştırılmış hali (beyaz üzerinde en az 5,5:1 kontrast); butonlar, bağlantılar,
 ///   yazılar. Logo mavisi açık olduğu için yazıda doğrudan kullanılamaz; koyu ton ana renkten hesaplanır, ayrıca ayarlanmaz.</item>
 /// </list>
 /// </summary>
 public sealed partial record Gorunum
 {
-    /// <summary>DSP logosundaki mavi (logonun baskı sürümünden ölçüldü).</summary>
-    public const string VarsayilanRenk = "#21bcec";
+    /// <summary>DSP logosundaki mavi (web sürümünden ölçüldü).</summary>
+    public const string VarsayilanRenk = "#16c0ed";
 
-    /// <summary>Bant üzerindeki yazı rengi: logo mavisi üzerinde okunur koyu lacivert.</summary>
+    /// <summary>DSP logosundaki kırmızı.</summary>
+    public const string VarsayilanIkinciRenk = "#f04248";
+
+    /// <summary>
+    /// Ana renk zemin üzerindeki yazı ve simge rengi: koyu lacivert. Logo mavisi üzerinde beyaz 2,1:1 kontrastla okunmaz,
+    /// lacivert 7,4:1 ile okunur.
+    /// </summary>
     public const string BantYazisi = "#0b2530";
 
     public static readonly Gorunum Varsayilan = new(VarsayilanRenk);
 
-    public Gorunum(string anaRenk)
+    public Gorunum(string anaRenk, string ikinciRenk = VarsayilanIkinciRenk)
     {
-        if (!RenkKalibi().IsMatch(anaRenk))
-            throw new InvalidOperationException($"'Gorunum:AnaRenk' ayarı #rrggbb biçiminde olmalı (örnek {VarsayilanRenk}); verilen: '{anaRenk}'.");
-        AnaRenk = anaRenk.ToLowerInvariant();
+        AnaRenk = Dogrula("Gorunum:AnaRenk", anaRenk, VarsayilanRenk);
+        IkinciRenk = Dogrula("Gorunum:IkinciRenk", ikinciRenk, VarsayilanIkinciRenk);
         Koyu = Koyulastir(AnaRenk, 5.5);
     }
 
+    private static string Dogrula(string ad, string renk, string ornek) =>
+        RenkKalibi().IsMatch(renk) ? renk.ToLowerInvariant()
+            : throw new InvalidOperationException($"'{ad}' ayarı #rrggbb biçiminde olmalı (örnek {ornek}); verilen: '{renk}'.");
+
     public string AnaRenk { get; }
+
+    /// <summary>Logo kırmızısı; şimdilik kullanılmıyor (uyarı renkleriyle karışmasın diye).</summary>
+    public string IkinciRenk { get; }
 
     public string Koyu { get; }
 
@@ -43,21 +57,8 @@ public sealed partial record Gorunum
 
     public string SeriRengi(int sira) => SeriRenkleri[Math.Clamp(sira, 0, SeriRenkleri.Count - 1)];
 
-    public static Gorunum Oku(IConfiguration ayarlar) => new(ayarlar["Gorunum:AnaRenk"] ?? VarsayilanRenk);
-
-    private static readonly Lazy<string> _logo = new(() =>
-    {
-        using var akis = typeof(Gorunum).Assembly.GetManifestResourceStream("dsp-logo-yatay.png")
-            ?? throw new InvalidOperationException("Gömülü logo (dsp-logo-yatay.png) bulunamadı.");
-        using var bellek = new MemoryStream();
-        akis.CopyTo(bellek);
-        return "data:image/png;base64," + Convert.ToBase64String(bellek.ToArray());
-    });
-
-    /// <summary>Yatay logo, PDF'e gömmek için data: adresi.</summary>
-    public static string LogoVeriAdresi => _logo.Value;
-
-    public const string LogoAdresi = "img/dsp-logo-yatay.png";
+    public static Gorunum Oku(IConfiguration ayarlar) =>
+        new(ayarlar["Gorunum:AnaRenk"] ?? VarsayilanRenk, ayarlar["Gorunum:IkinciRenk"] ?? VarsayilanIkinciRenk);
 
     /// <summary>Rengin tonunu koruyup (HSL) açıklığını, beyaz üzerindeki kontrast <paramref name="kontrast"/> olana kadar azaltır.</summary>
     public static string Koyulastir(string renk, double kontrast)

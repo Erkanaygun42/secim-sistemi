@@ -7,13 +7,12 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="0" Dense="true" Class="ust-cubuk" Style="@($"border-bottom: 3px solid {Gorunum.AnaRenk};")">
+    <MudAppBar Elevation="1" Dense="true" Class="ust-cubuk">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="@(() => _menuAcik = !_menuAcik)" aria-label="Menüyü aç/kapat" />
-        <a href="" class="logo-baglantisi"><img src="@Gorunum.LogoAdresi" alt="Demokratik Sol Parti" class="logo" /></a>
-        <MudText Typo="Typo.h6" Class="ml-3">Seçim Analizi</MudText>
+        <MudText Typo="Typo.h6" Class="ml-2"><b>DSP</b> Seçim Analizi</MudText>
         <MudSpacer />
-        <span class="partiye-ozel" style="@($"background: {Gorunum.AnaRenk}; color: {Gorunum.BantYazisi};")">Partiye özel</span>
+        <span class="partiye-ozel" style="@($"background: {Gorunum.BantYazisi}; color: {Gorunum.AnaRenk};")">Partiye özel</span>
     </MudAppBar>
     <MudDrawer @bind-Open="_menuAcik" ClipMode="DrawerClipMode.Always" Elevation="1">
         <NavMenu />

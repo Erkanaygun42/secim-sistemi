@@ -77,5 +77,6 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   Web Sprint 7'ye kadar yalnızca localhost'tan açılır (K16). Sınır kararı düzeltme ekranı Sprint 7'ye ertelendi (K17).
 - Sprint 4 geri bildirimi uygulandı (K25–K31): sınır durumu dönemi gösterir, sütun açıklamaları `SutunSozlugu`'nda
   (sayfada ⓘ, PDF'te "Bu rapor nasıl okunur"), grafikler sunucuda SVG (`SvgCizici`).
-- Ana renk tek ayarda: `appsettings.json` → `Gorunum:AnaRenk` (DSP logo mavisi `#21bcec`); yazı tonu bundan hesaplanır.
+- Renkler tek ayarda: `appsettings.json` → `Gorunum:AnaRenk` (DSP logo mavisi `#16c0ed`; yazı tonu bundan hesaplanır) ve
+  `Gorunum:IkinciRenk` (logo kırmızısı `#f04248`, şimdilik kullanılmıyor). Logo arayüzde ve PDF'te yok (K32).
 - Sıradaki: Sprint 5 (yapım programına bakın). Harita Sprint 6'da.

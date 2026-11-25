@@ -210,9 +210,13 @@ public class RaporBelgeleriTestleri
         Assert.Equal([("Belediye meclisi", 0), ("Belediye başkanı", 1)], cizgi.Seriler.Select(s => (s.Ad, s.Renk)));
         Assert.Equal([null, 0.2m], cizgi.Seriler[1].Degerler); // 2009'da pusulada değil: boşluk
 
-        var cubuk = Assert.IsType<CubukGrafigi>(Assert.Single(b.Bolumler[1].GrafikListesi));
-        Assert.Equal(["B (2019–2024)", "A (2009–2024)"], cubuk.Cubuklar.Select(c => c.Etiket)); // kayıp büyükten küçüğe
-        Assert.Equal([5m, 1m], cubuk.Cubuklar.Select(c => c.Deger));
+        // Her dönem ayrı grafik, tablodaki sırayla (en uzun dönem önce); dönemler tek sıralamada karışmaz.
+        var cubuklar = b.Bolumler[1].GrafikListesi.Cast<CubukGrafigi>().ToList();
+        Assert.Equal(2, cubuklar.Count);
+        Assert.Equal("En çok oy kaybeden 1 mahalle · dönem 2009–2024 · Belediye meclisi", cubuklar[0].Baslik);
+        Assert.Equal(("A", 1m), (cubuklar[0].Cubuklar.Single().Etiket, cubuklar[0].Cubuklar.Single().Deger));
+        Assert.Equal("En çok oy kaybeden 1 mahalle · dönem 2019–2024 · Belediye meclisi", cubuklar[1].Baslik);
+        Assert.Equal(("B", 5m), (cubuklar[1].Cubuklar.Single().Etiket, cubuklar[1].Cubuklar.Single().Deger));
     }
 
     [Fact]
@@ -220,10 +224,11 @@ public class RaporBelgeleriTestleri
     {
         var e = OrnekErime();
         var r = e.Rapor!;
-        var satirlar = Enumerable.Range(1, 14).Select(i => r.Satirlar[0] with { BirimKod = 100 + i, BirimAdi = $"M{i}", KayipOy = i - 3 }).ToList();
+        // 14 satır, hepsi A'nın dönemi (2009–2024); kayıp −2 … 11.
+        var satirlar = Enumerable.Range(1, 14).Select(i => r.Satirlar[0] with { BirimAdi = $"M{i}", KayipOy = i - 3 }).ToList();
         var e2 = e with { Raporlar = new Dictionary<OyTuru, ErimeRaporu> { [OyTuru.BelediyeMeclisi] = r with { Satirlar = satirlar } } };
 
-        var g = RaporGrafikleri.EnCokKaybeden(e2)!;
+        var g = Assert.Single(RaporGrafikleri.EnCokKaybedenler(e2));
 
         Assert.Equal(10, g.Cubuklar.Count);
         Assert.Equal(11m, g.Cubuklar[0].Deger);

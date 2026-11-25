@@ -1,6 +1,5 @@
 @* PDF'in HTML şablonu. HtmlRenderer ile metne çevrilir, Playwright (Chromium) PDF'e basar.
-   Yalnızca düz HTML, satır içi CSS ve SVG: MudBlazor ve dış dosya kullanılmaz (sayfa sunucuya istek atmadan basılır;
-   logo gömülü kaynaktan data: adresiyle gelir). Sıra: başlık bilgisi → tablolar ve grafikler → nasıl okunur → notlar → dosyalar. *@
+   Yalnızca düz HTML, satır içi CSS ve SVG: MudBlazor ve dış dosya kullanılmaz (sayfa sunucuya istek atmadan basılır). Sıra: başlık bilgisi → tablolar ve grafikler → nasıl okunur → notlar → dosyalar. *@
 @using SecimSistemi.Web.Raporlar
 @inject Gorunum Gorunum
 
@@ -13,9 +12,7 @@
         @@page { size: A4 landscape; }
         * { box-sizing: border-box; }
         body { font-family: "Segoe UI", Arial, "DejaVu Sans", sans-serif; font-size: 8.5pt; color: #222; margin: 0; }
-        .ust { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid @Gorunum.AnaRenk;
-               padding-bottom: 6px; margin-bottom: 8px; }
-        .ust img { height: 34px; }
+        .ust { border-bottom: 3px solid @Gorunum.AnaRenk; padding-bottom: 6px; margin-bottom: 8px; }
         .ibare { background: @Gorunum.AnaRenk; color: @Gorunum.BantYazisi; font-weight: 700; font-size: 10pt; letter-spacing: .5px;
                  padding: 4px 10px; }
         h1 { font-size: 15pt; margin: 2px 0 8px; color: @Gorunum.Koyu; }
@@ -49,7 +46,6 @@
 </head>
 <body>
     <div class="ust">
-        <img src="@Gorunum.LogoVeriAdresi" alt="Demokratik Sol Parti" />
         <div class="ibare">@Metinler.PartiyeOzel</div>
     </div>
     <h1>@Belge.Baslik</h1>

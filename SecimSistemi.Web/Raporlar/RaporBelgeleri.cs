@@ -203,7 +203,7 @@ public static class RaporBelgeleri
                 "Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir. Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce). " +
                 "Gri ve boş hücre: o yıl mahallenin karşılaştırılabilir döneminin dışında.",
                 sutunlar, satirlar, notlar,
-                RaporGrafikleri.EnCokKaybeden(e) is { } kg ? [kg] : null));
+                RaporGrafikleri.EnCokKaybedenler(e)));
         }
 
         var kaleYillari = e.Raporlar.Values.SelectMany(x => x.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();

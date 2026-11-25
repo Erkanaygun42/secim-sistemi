@@ -244,6 +244,8 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   etiketleri ve altında tablo vardır; seriler renkten başka işaret biçimiyle de ayrılır (daire, kare, eşkenar dörtgen).
 - **Gerekçe:** Kullanıcı parti rengini istedi ve tonu sonradan tek yerden değiştirebilmek istedi. Kırmızı (eski ana renk)
   kaldırıldı.
+  **Değişti (2026-11-25):** ana renk `#16c0ed`, üst çubuğun zemini mavi, logo üst çubuktan ve PDF'ten kaldırıldı;
+  logo kırmızısı ikinci renk olarak ayarda, bkz. K32.
 
 ### K28. Başlıkta kaynak özeti, dosya listesi sonda (K22 değişti)
 - **Karar:** PDF ve Excel başlığında yalnızca "YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 12 dosya · son yükleme
@@ -274,3 +276,18 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Gerekçe:** PDF sunucuda basıldığı için grafik de sunucuda çizilmeli; JavaScript grafik kütüphanesi PDF'te ayrıca
   beklenmeyi gerektirirdi. Farklı dönemler aynı grafikte K6/K14 gereği yan yana sıralanamaz sayılabilirdi; kullanıcı
   "en çok kaybeden 10 mahalle" istediği için birlikte gösterilir ama dönem her çubuğun etiketindedir.
+  **Değişti (2026-11-25):** en çok kaybedenler her dönem için ayrı grafiktir, bkz. K33.
+
+### K32. Üst çubuk parti mavisi, logo yok; ikinci renk ayarda (K27 değişti)
+- **Karar:** Ana renk `#16c0ed` (logonun web sürümündeki mavi). Üst çubuğun zemini ana renktir; yazı ve simgeler koyu
+  lacivert (`#0b2530`): beyaz bu mavi üzerinde 2,1:1 kontrastla okunmaz, lacivert 7,4:1. "Partiye özel" bandı üst çubukta
+  lacivert zemin üzerinde mavi; PDF'te mavi zemin üzerinde lacivert. Logo üst çubuktan ve PDF başlığından kaldırıldı
+  (PDF'e gömülü logo da kalktı); logo dosyaları `wwwroot/img`'de duruyor, kullanılmıyor.
+  Logodaki kırmızı (`#f04248`) `Gorunum:IkinciRenk` ayarına eklendi ama hiçbir yerde kullanılmıyor.
+- **Gerekçe:** Kullanıcı isteği. Kırmızı, uyarı renkleriyle (şüpheli sarısı, "sınırı değişti" kırmızısı) karışmasın.
+
+### K33. En çok kaybedenler dönem başına ayrı grafik (K31 değişti)
+- **Karar:** Erime sayfasında "En çok oy kaybeden mahalleler" her karşılaştırılabilir dönem için ayrı grafiktir
+  (Esenyurt: 2009–2024 ve 2019–2024), tablodaki dönem gruplamasıyla aynı sırada; her grafik o dönemin en çok 10 mahallesini
+  gösterir. Her grafiğin ölçeği kendi en büyük kaybına göredir; değerler çubuk ucunda yazılı.
+- **Gerekçe:** Farklı tabanlardan gelen kayıplar tek sıralamada karşılaştırılamaz (K6, K14). Kullanıcı isteği.

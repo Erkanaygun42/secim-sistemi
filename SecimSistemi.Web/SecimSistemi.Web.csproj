@@ -14,11 +14,6 @@
     <PackageReference Include="MudBlazor" Version="9.14.0" />
   </ItemGroup>
 
-  <!-- PDF sunucuya istek atmadan basılır; logo PDF'e derlemenin içinden (gömülü kaynak) eklenir. -->
-  <ItemGroup>
-    <EmbeddedResource Include="wwwroot\img\dsp-logo-yatay.png" LogicalName="dsp-logo-yatay.png" />
-  </ItemGroup>
-
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>

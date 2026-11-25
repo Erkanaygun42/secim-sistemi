@@ -48,7 +48,7 @@ public sealed class PdfTestleri : IAsyncDisposable
         Assert.Contains("YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 2 dosya · son yükleme 3 Kasım 2026", html);
         Assert.Contains("25 Kasım 2026 14:30 (Türkiye saati)", html);
         Assert.Contains(Metinler.EslemeNotu, html);
-        Assert.Contains("<img src=\"data:image/png;base64,", html); // logo gömülü, sunucuya istek yok
+        Assert.DoesNotContain("<img", html); // başlıkta logo yok
         Assert.Contains($"background: {Gorunum.VarsayilanRenk}", html);
     }
 
@@ -97,7 +97,7 @@ public sealed class PdfTestleri : IAsyncDisposable
 
         var html = System.Net.WebUtility.HtmlDecode(await _pdf.HtmlAsync(b));
 
-        Assert.Equal(2, Regex.Matches(html, "<svg class=\"grafik\"").Count); // ilçe çizgisi + en çok kaybedenler
+        Assert.Equal(3, Regex.Matches(html, "<svg class=\"grafik\"").Count); // ilçe çizgisi + iki dönemin en çok kaybedenleri
         Assert.Contains("<h3>ESENYURT · yıllara göre DSP oranı</h3>", html);
         Assert.Contains("<td class=\"donem-disi\"></td>", html);
     }

@@ -95,17 +95,7 @@ h1:focus {
     margin-left: auto;
 }
 
-/* Üst çubuk: logo ve "partiye özel" bandı (renk Gorunum:AnaRenk ayarından gelir). */
-.ust-cubuk .logo {
-    height: 44px;
-    display: block;
-}
-
-.logo-baglantisi {
-    display: inline-flex;
-    margin-left: 8px;
-}
-
+/* Üst çubuk: zemin ana renk, yazı koyu lacivert (Tema.cs); "partiye özel" bandı lacivert zemin üzerinde ana renk. */
 .partiye-ozel {
     font-weight: 700;
     font-size: 0.8rem;

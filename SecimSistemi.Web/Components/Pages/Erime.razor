@@ -87,7 +87,10 @@ else
         Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir (son sınır değişikliğinden bugüne).
         Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce).
     </MudText>
-    <GrafikKutusu Grafik="RaporGrafikleri.EnCokKaybeden(_sonuc)" />
+    @foreach (var g in RaporGrafikleri.EnCokKaybedenler(_sonuc))
+    {
+        <GrafikKutusu Grafik="g" />
+    }
     var yillar = RaporBelgeleri.MahalleYillari(_sonuc);
     var sutunSayisi = 11 + yillar.Count;
     <MudText Typo="Typo.body2" Class="mb-2">Gri ve boş hücre: o yıl mahallenin karşılaştırılabilir döneminin dışında.</MudText>
