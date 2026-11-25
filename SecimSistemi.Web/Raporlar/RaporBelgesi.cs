@@ -29,6 +29,26 @@ public enum SatirTuru
 
 public sealed record Sutun(string Baslik, HucreTuru Tur = HucreTuru.Metin);
 
+/// <summary>Hücre değerinin metni (PDF'te). Biçimler ekrandakiyle aynıdır; boş sayı "—", boş metin boş kalır.</summary>
+public static class HucreMetni
+{
+    public static string Yaz(HucreTuru tur, object? deger)
+    {
+        if (deger is null) return tur == HucreTuru.Metin ? "" : Metinler.Bos;
+        if (deger is string s) return s;
+        var d = Convert.ToDecimal(deger, Metinler.Turkce);
+        return tur switch
+        {
+            HucreTuru.Tamsayi => Metinler.Oy(d),
+            HucreTuru.Oran => Metinler.Oran(d),
+            HucreTuru.Puan => Metinler.Puan(d),
+            HucreTuru.Katsayi => Metinler.Katsayi(d),
+            HucreTuru.Kod => d.ToString("0", Metinler.Turkce),
+            _ => Convert.ToString(deger, Metinler.Turkce) ?? "",
+        };
+    }
+}
+
 /// <summary>Bir satırın değerleri; boş değer (null) "—" olarak yazılır.</summary>
 public sealed record RaporSatiri(IReadOnlyList<object?> Degerler, SatirTuru Tur = SatirTuru.Normal);
 

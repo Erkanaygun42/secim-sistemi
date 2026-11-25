@@ -4,6 +4,8 @@
 <div class="disa-aktar">
     <MudButton Href="@($"disa-aktar/{Rapor}.xlsx?{Sorgu}")" Variant="Variant.Outlined" Color="Color.Success" Size="Size.Small"
                StartIcon="@Icons.Material.Filled.TableView" UserAttributes="@Indir">Excel'e aktar</MudButton>
+    <MudButton Href="@($"disa-aktar/{Rapor}.pdf?{Sorgu}")" Variant="Variant.Outlined" Color="Color.Error" Size="Size.Small"
+               StartIcon="@Icons.Material.Filled.PictureAsPdf" UserAttributes="@Indir">PDF'e aktar</MudButton>
 </div>
 
 @code {
