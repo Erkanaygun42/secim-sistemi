@@ -1,7 +1,33 @@
-﻿@page "/"
+@page "/"
 
-<PageTitle>Home</PageTitle>
+<PageTitle>DSP Seçim Analizi</PageTitle>
 
-<h1>Hello, world!</h1>
+<MudText Typo="Typo.h4" GutterBottom="true">DSP Seçim Analizi</MudText>
+<MudText Class="mb-6">
+    YSK sandık sonuçlarından mahalle/köy düzeyinde DSP'nin gücü, erimesi ve sınır değişiklikleri.
+</MudText>
 
-Welcome to your new app.
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6">Mahalle karnesi</MudText>
+                <MudText Typo="Typo.body2">Seçilen ilçe, seçim ve oy türünde her mahallenin DSP oyu, oranı ve sınır durumu.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="karne" Color="Color.Primary">Aç</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6">Erime raporu</MudText>
+                <MudText Typo="Typo.body2">İlçe düzeyinde 2009'dan bugüne, mahalle düzeyinde karşılaştırılabilir dönemde kayıp oy.</MudText>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton Href="erime" Color="Color.Primary">Aç</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</MudGrid>
