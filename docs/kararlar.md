@@ -457,3 +457,26 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   ilçe sınırlarının 2009'dan beri değişmediği varsayımı notlarda. İllerin ilçe sayısı `IlOzetiHazirlayici.IlceSayilari`'nda
   (İstanbul 39, Kocaeli 12).
 
+### K45. Mahalle haritası: OSM sınırları, sunucuda SVG, internetsiz
+- **Kaynak ve lisans:** mahalle sınırları OpenStreetMap'ten (admin_level=8 idari sınırlar, Overpass API) `harita-sinirlari <ilçe>`
+  komutuyla bir kez indirilir, kapalı halkalara birleştirilir ve `SecimSistemi.Web/Harita/<ilçe>.geojson` olarak depoya
+  kaydedilir. **Atıf (ODbL 1.0): "Harita verisi © OpenStreetMap katkıda bulunanlar, ODbL 1.0 lisansı
+  (https://www.openstreetmap.org/copyright)".** Atıf GeoJSON dosyasının içinde ve harita sayfasında haritanın altında yazılıdır.
+  Dosya OSM verisinden türetilmiş bir veritabanıdır; paylaşılırsa ODbL'ye göre aynı lisansla ve atıfla paylaşılır.
+- **Overpass:** bir ilçe için tek sorgu; sunucu doluysa bekleyip bir yansıyı (kumi.systems) dener; istek başlığında kişisel
+  bilgi yok. Sunucu doluyken önceden kaydedilmiş bir yanıt `--dosya` ile kullanılabilir. Esenyurt dosyası (43 mahalle, 60 KB)
+  2026-11-26'da ilçe kimliğiyle (OSM ilişki 1766102) alınan yanıttan üretildi. Komutun sorgusu ilçeyi ilin OSM kaydının
+  (ISO 3166-2, örnek TR-34) alt üyeleri arasından adıyla bulur, mahalleleri ilçe alanından alır; il sınırından alan üretilemiyor
+  (İstanbul'da boş sonuç; denendi). Esenyurt için aynı sorgu 43 mahallenin hepsini döndürdü (kimlik listesiyle denendi).
+- **Çizim:** Leaflet ve PostGIS yerine sunucuda SVG (`HaritaCizici`): JavaScript, arka plan haritası ve internet gerekmez
+  (sunum yerinde internet olmayabilir); grafiklerle aynı yöntem, ileride PDF'e de girebilir. Eşdikdörtgen izdüşüm (boylam
+  ilçenin enlemine göre kısaltılır); ilçe ölçeğinde yeterli. PostGIS Türkiye geneline geçince düşünülecek.
+- **Renk:** DSP oranı, ana rengin tek tonlu beş basamağı; sınıflar beşte birlik dilimler (her tonda yaklaşık aynı sayıda mahalle).
+  DSP pusulada değilse gri; YSK'da eşleşmeyen mahalle taralı gri.
+- **Eşleştirme:** önce `Tanimlar/harita-eslemeleri.csv` (elle, `ilce;osm_id;birim_kod;not`), sonra ad (büyük harf, "Mahallesi"/"MAH."
+  atılarak), sonra OSM adının YSK adıyla başlaması (tek aday varsa; OSM'de "Akevler Mahallesi 7 sokak" gibi hatalı adlar için).
+  Eşleşmeyenler (iki yönde) sayfada listelenir. Esenyurt 2024: 43/43.
+- **Eski seçimler (doğrulanmamış veri görünür ama işaretli):** harita bugünkü sınırları gösterir. Seçilen yılda olmayan mahalle
+  taralıdır; bugünkü karşılaştırılabilir dönemi seçilen yıldan sonra başlayan mahalle (sınırı sonradan değişti) gri ve
+  "dönem dışı"dır, renk sınıflarına girmez; sayfada uyarı vardır. Esenyurt 2009: 20 mahallenin 6'sı renkli, 14'ü dönem dışı.
+

@@ -17,6 +17,9 @@
   <!-- Meclis üye sayıları tek dosyada (Importer/Tanimlar); uygulama çıktı klasöründeki kopyasını okur. -->
   <ItemGroup>
     <None Include="..\SecimSistemi.Importer\Tanimlar\meclis-uye-sayilari.csv" Link="Tanimlar\meclis-uye-sayilari.csv" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\SecimSistemi.Importer\Tanimlar\harita-eslemeleri.csv" Link="Tanimlar\harita-eslemeleri.csv" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Mahalle sınırları (OpenStreetMap, ODbL): harita-sinirlari komutu yazar, uygulama çıktı klasöründen okur. -->
+    <None Include="Harita\*.geojson" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <PropertyGroup>

@@ -13,9 +13,11 @@ public sealed record SecimSecenegi(int Id, int Yil, DateOnly Tarih, string Ad, S
 /// <param name="DonemSiniri">O seçime göre karşılaştırılabilir dönemin sınır özeti (<see cref="BirimDonemi.DonemSiniri"/>); ekranda bu gösterilir.</param>
 /// <param name="OncekiYil">Puan farkının karşılaştırıldığı önceki yerel seçim; birim o seçimde yoksa boş.</param>
 /// <param name="PuanFarki">DSP oranının önceki yerel seçime göre farkı, yüzde puan (SecimDegisimi görünümü).</param>
+/// <param name="GuncelDonemBaslangici">Birimin bugünkü (son seçime göre) karşılaştırılabilir döneminin başı. Seçilen yıldan sonraysa
+/// birimin bugünkü sınırı o yılki alanı göstermez (haritada dönem dışı).</param>
 public sealed record KarneSatiri(
     int BirimKod, string BirimAdi, int SandikSayisi, long ToplamOy, bool PusuladaMi, long? DspOyu, decimal? DspOrani,
-    BirimYilDurumu? Sinir, DonemSiniri? DonemSiniri, int? OncekiYil = null, decimal? PuanFarki = null)
+    BirimYilDurumu? Sinir, DonemSiniri? DonemSiniri, int? OncekiYil = null, decimal? PuanFarki = null, int? GuncelDonemBaslangici = null)
 {
     public int? DonemBaslangici => DonemSiniri?.DonemBaslangici;
 
@@ -108,7 +110,7 @@ public sealed class KarneServisi(SecimDbContext db)
             var birim = sinir.Birim(k.BirimKod);
             var d = degisim.GetValueOrDefault(k.BirimKod);
             return new KarneSatiri(k.BirimKod, k.BirimAdi, k.SandikSayisi, k.ToplamOy, k.PusuladaMi, k.DspOyu, k.DspOrani,
-                birim?.Durum(secim.Yil), birim?.DonemSiniri(secim.Yil), d?.OncekiYil, d?.PuanFarki);
+                birim?.Durum(secim.Yil), birim?.DonemSiniri(secim.Yil), d?.OncekiYil, d?.PuanFarki, birim?.DonemBaslangici);
         });
 
         return new Karne(ilce, secim, oyTuru, Esikler, KarneSiralamasi.Uygula(sonuc, KarneSiraAlani.DspOrani, azalan: true));

@@ -1,0 +1,136 @@
+@page "/harita"
+@inject KarneHazirlayici Hazirlayici
+@inject HaritaDeposu Haritalar
+@inject Gorunum Gorunum
+@inject NavigationManager Nav
+
+<PageTitle>Harita</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Mahalle haritası</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Karne is not { } k)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında karne verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <IlIlceSecici Ilceler="_sonuc.Ilceler" Ilce="k.Ilce" IlceDegisti="IlceDegisti" />
+            <MudSelect T="int" Label="Seçim" Value="@k.Secim.Id" ValueChanged="SecimDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var s in _sonuc.Secimler)
+                {
+                    <MudSelectItem Value="@s.Id">@s.Yil · @s.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Oy türü" Value="@Metinler.Kod(k.OyTuru)" ValueChanged="OyTuruDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.OyTurleri)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
+    @if (Haritalar.Ilce(k.Ilce.Kod) is not { } harita)
+    {
+        <MudAlert Severity="Severity.Info">
+            @k.Ilce.Ad için mahalle sınırları yok. Depo klasöründe şu komutla ekleyin, sonra uygulamayı yeniden başlatın:
+            <code>dotnet run --project SecimSistemi.Importer -- harita-sinirlari @DosyaAdi(k.Ilce)</code>
+        </MudAlert>
+    }
+    else
+    {
+        var birimler = k.Satirlar.Select(s => (s.BirimKod, s.BirimAdi)).ToList();
+        var eslesme = HaritaCizici.Eslestir(harita, birimler, Haritalar.Eslemeler(k.Ilce.Kod));
+        var satirlar = k.Satirlar.ToDictionary(s => s.BirimKod);
+        // Bugünkü sınırı seçilen yıldan sonra oluşmuş mahalle o yılın değerini göstermez: dönem dışı (gri), sınıflara girmez.
+        bool DonemDisi(KarneSatiri s) => s.GuncelDonemBaslangici > k.Secim.Yil;
+        var siniflar = HaritaCizici.Siniflar(k.Satirlar.Where(s => eslesme.OsmdenBirime.Values.Contains(s.BirimKod) && s.DspOrani is not null && !DonemDisi(s))
+            .Select(s => s.DspOrani!.Value), Gorunum);
+        var donemDisi = k.Satirlar.Where(s => eslesme.OsmdenBirime.Values.Contains(s.BirimKod) && DonemDisi(s)).ToList();
+        var sonSecim = _sonuc.Secimler.Max(s => s.Tarih);
+
+        <MudText Class="mb-2">
+            <b>@k.Ilce.Ad</b> · @k.Secim.Yil · @Metinler.Ad(k.OyTuru) · DSP oranı (%) · @eslesme.OsmdenBirime.Count / @harita.Mahalleler.Count mahalle eşleşti
+        </MudText>
+        @if (k.Secim.Tarih < sonSecim)
+        {
+            <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+                Harita bugünkü (OpenStreetMap) mahalle sınırlarını gösterir. @k.Secim.Yil seçiminde mahalleler farklıydı: o yıl olmayan
+                mahalleler taralıdır, sınırı @k.Secim.Yil'den sonra değişen @donemDisi.Count mahalle gridir (karşılaştırılabilir dönem dışı).
+            </MudAlert>
+        }
+
+        <MudPaper Outlined="true" Class="pa-4 mb-2 harita-kutusu">
+            @((MarkupString)HaritaCizici.Ciz(harita, osm =>
+            {
+                if (!eslesme.OsmdenBirime.TryGetValue(osm, out var kod) || !satirlar.TryGetValue(kod, out var s)) return null;
+                if (DonemDisi(s))
+                    return (s.DspOrani, $"{s.BirimAdi}: bugünkü sınırı {s.GuncelDonemBaslangici} seçiminde oluştu; {k.Secim.Yil} değeri (%{Metinler.Oran(s.DspOrani)}) bu alanı göstermez", true);
+                var ipucu = $"{s.BirimAdi}: " + (s.DspOrani is null ? Metinler.PusuladaDegil : $"%{Metinler.Oran(s.DspOrani)} ({Metinler.Oy(s.DspOyu)} / {Metinler.Oy(s.ToplamOy)} oy)")
+                            + (s.Uyari ? $" · ⚠ {Metinler.Sinir(s.DonemSiniri)}" : "");
+                return (s.DspOrani, ipucu, false);
+            }, siniflar))
+            <div class="harita-lejant">
+                @foreach (var c in siniflar)
+                {
+                    <span><i style="background:@c.Renk"></i>%@Metinler.Oran(c.Alt)–@Metinler.Oran(c.Ust)</span>
+                }
+                <span><i style="background:#d9d9d9"></i>@Metinler.PusuladaDegil</span>
+                @if (donemDisi.Count > 0)
+                {
+                    <span><i style="background:@HaritaCizici.DonemDisiRengi"></i>sınırı sonradan değişti (dönem dışı)</span>
+                }
+                <span><i class="taralı"></i>YSK'da eşleşmedi</span>
+            </div>
+            <MudText Typo="Typo.caption" Class="mt-2 d-block">
+                @OsmAtfi · sınırlar @harita.Indirme tarihinde indirildi. Mahalleyi görmek için üzerine gelin.
+            </MudText>
+        </MudPaper>
+
+        @if (eslesme.EslesmeyenOsm.Count > 0 || eslesme.EslesmeyenYsk.Count > 0)
+        {
+            <MudAlert Severity="Severity.Info" Dense="true" Class="mt-3">
+                @if (eslesme.EslesmeyenOsm.Count > 0)
+                {
+                    <div><b>Haritada olup YSK'da eşleşmeyen (@eslesme.EslesmeyenOsm.Count):</b> @string.Join(", ", eslesme.EslesmeyenOsm.Select(m => $"{m.Ad} (OSM {m.OsmId})"))</div>
+                }
+                @if (eslesme.EslesmeyenYsk.Count > 0)
+                {
+                    <div><b>YSK'da olup haritada eşleşmeyen (@eslesme.EslesmeyenYsk.Count):</b> @string.Join(", ", eslesme.EslesmeyenYsk.Select(b => $"{b.Ad} ({b.Kod})"))</div>
+                }
+                <div class="mt-1">Eşleşmesi gerekenler <code>SecimSistemi.Importer/Tanimlar/harita-eslemeleri.csv</code> dosyasına elle yazılabilir (ilce;osm_id;birim_kod;not).</div>
+            </MudAlert>
+        }
+    }
+}
+
+@code {
+    public const string OsmAtfi = "Harita verisi © OpenStreetMap katkıda bulunanlar, ODbL 1.0 lisansı (openstreetmap.org/copyright)";
+
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "secim")] public int? Secim { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+
+    private KarneSonucu? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new KarneSorgusu(Ilce, Secim, OyTuru, null, null));
+
+    private static string DosyaAdi(IlceSecenegi i) =>
+        new string(i.Ad.ToLower(Metinler.Turkce).Select(c => c switch { 'ç' => 'c', 'ğ' => 'g', 'ı' => 'i', 'ö' => 'o', 'ş' => 's', 'ü' => 'u', _ => c }).ToArray());
+
+    private void Git(KarneSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(new Dictionary<string, object?>
+    {
+        ["ilce"] = s.Ilce, ["secim"] = s.Secim, ["oy-turu"] = s.OyTuru,
+    }));
+
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod, Secim = null, OyTuru = null });
+    private void SecimDegisti(int id) => Git(_sonuc!.Sorgu with { Secim = id });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+}

@@ -1,0 +1,3 @@
+# Harita: OSM mahallesi → YSK mahalle/köy kodu, elle (ad eşleşmesi bulunamayanlar için).
+# Eşleşmeyenler harita sayfasında listelenir. osm_id: harita dosyasındaki (OSM ilişki) kimlik; birim_kod: YSK Muhtarlık Id.
+ilce;osm_id;birim_kod;not

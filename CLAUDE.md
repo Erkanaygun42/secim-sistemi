@@ -60,6 +60,8 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   - `dotnet run --project SecimSistemi.Importer -- yukle-hepsi data/raw`
   - `dotnet run --project SecimSistemi.Importer -- mahalle listele|esleme-oner|esleme-yukle 34-ESENYURT`
   - `dotnet run --project SecimSistemi.Importer -- rapor erime 34-ESENYURT [--oy-turu belediye-baskani]` (csv: `data/out`, git'e girmez)
+  - `dotnet run --project SecimSistemi.Importer -- harita-sinirlari esenyurt` (OSM mahalle sınırları → SecimSistemi.Web/Harita; ODbL, K45)
+  - Yeni ilçe ekleme adımları: `docs/yeni-ilce-ekleme.md`
   - PDF için Chromium (her makinede bir kez, `dotnet build` sonrası): `powershell -ExecutionPolicy Bypass -File SecimSistemi.Web/bin/Debug/net10.0/playwright.ps1 install chromium`
 
 ## Pilot: İstanbul / Esenyurt
@@ -85,5 +87,7 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
   sayfalar `/gruplar`, `/oncelik`, `/meclis` (K39), Excel ve PDF (K41). Meclis hesabı basın kaynaklı iki örnekle test edildi
   (K40, resmî değil). 2014 meclis doğrulaması, resmî veri gelince ayrı küçük iş. Meclis üye sayıları
   `SecimSistemi.Importer/Tanimlar/meclis-uye-sayilari.csv` (Esenyurt 2024 = 45, doğrulanmadı); resmî sayılar kullanıcıdan gelecek.
-- Sıradaki: İstanbul ve Kocaeli planı (onay bekliyor). Harita, veri ve sayfalar bittikten sonra ve yetişirse.
+- Sunum (6 Aralık 2026, K43): Esenyurt + Şişli, Adalar, Bakırköy. Kod hazır: indirme denetimi, il özeti (`/il`), harita
+  (`/harita`, internetsiz). Dosyalar gelince: `dosya-denetle`, `yukle-hepsi`, başlık sınıflandırma, `harita-sinirlari`.
+  Resmî meclis sayıları ("Seçilen Belediye Meclisi Üyeleri Listesi") okuyucusu dosya gelince yazılacak.
 - Erteleniyor: potansiyel skoru, sandık koordinatları, ikna/mobilizasyon etiketi (K37).

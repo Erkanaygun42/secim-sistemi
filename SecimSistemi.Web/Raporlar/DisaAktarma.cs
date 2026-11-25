@@ -79,6 +79,8 @@ public static class DisaAktarmaUclari
         s.AddScoped<IlOzetiHazirlayici>();
         // Meclis üye sayıları: Tanimlar/meclis-uye-sayilari.csv (Importer'dan uygulamanın çıktı klasörüne kopyalanır).
         s.AddSingleton(_ => MeclisUyeTanimlari.Yukle());
+        // Harita: SecimSistemi.Web/Harita/*.geojson (harita-sinirlari komutuyla) ve Tanimlar/harita-eslemeleri.csv.
+        s.AddSingleton(_ => HaritaDeposu.Yukle());
         s.AddSingleton<PdfUretici>();
     }
 

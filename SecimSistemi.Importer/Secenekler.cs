@@ -13,7 +13,7 @@ internal sealed class Secenekler
     private static readonly HashSet<string> Degerliler =
     [
         "--oy-turu", "--dusus-esigi", "--artis-esigi", "--supheli-esigi",
-        "--mahalle", "--secim", "--karar", "--esle", "--tur", "--yururluk", "--gerekce", "--kaynak", "--kisi", "--not",
+        "--mahalle", "--secim", "--karar", "--esle", "--tur", "--yururluk", "--gerekce", "--kaynak", "--kisi", "--not", "--dosya",
     ];
 
     private readonly Dictionary<string, string> _degerler = [];

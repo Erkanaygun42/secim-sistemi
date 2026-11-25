@@ -38,6 +38,8 @@ try
             SecimSistemi.Importer.Okuma.DosyaDenetimi.Yazdir(sonuc, Console.Out);
             return sonuc.Temiz ? 0 : 1;
         }
+        case "harita-sinirlari" when k.Count == 2:
+            return await SecimSistemi.Importer.Harita.OsmSinirlari.CalistirAsync(k[1], s.Deger("--dosya"));
         case "basliklari-denetle" when k.Count == 2:
             return BaslikDenetimi.Calistir(k[1]);
         case "incele" when k.Count == 2:
@@ -67,6 +69,9 @@ try
                                                           Erime raporu; csv'ler data/out altına yazılır
                   rapor esik-dogrulama <ilçe kodu>        Onaylı insan kararlarıyla otomatik sınır tespitinin örtüşmesi
                   basliklari-denetle <klasör>             Başlıkları Tanimlar/basliklar.csv ile eşler (veritabanına dokunmaz)
+                  harita-sinirlari <ilçe> [--dosya yanit.json]
+                                                          OSM mahalle sınırlarını indirir → SecimSistemi.Web/Harita/<ilçe>.geojson (ör. esenyurt);
+                                                          --dosya: Overpass doluyken önceden kaydedilmiş yanıt
                   incele <klasör> | ozet <klasör> | karsilastir <a.xlsx> <b.xlsx>
                 Sınır eşikleri (mahalle listele, rapor erime, rapor esik-dogrulama):
                   --dusus-esigi 0.25  --artis-esigi 0.60  --supheli-esigi 0.15   (pay değişimi, oran olarak)

@@ -164,3 +164,30 @@ td.donem-disi {
     vertical-align: top;
     width: 40%;
 }
+
+/* Mahalle haritası */
+.harita-lejant {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+}
+
+.harita-lejant i {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    margin-right: 4px;
+    vertical-align: -2px;
+    border: 1px solid #ccc;
+}
+
+.harita-lejant i.taralı {
+    background: repeating-linear-gradient(45deg, #eeeeee 0 3px, #bdbdbd 3px 5px);
+}
+
+.harita path:hover {
+    stroke: #333;
+    stroke-width: 2;
+}
