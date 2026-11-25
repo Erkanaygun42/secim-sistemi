@@ -1,0 +1,134 @@
+@page "/mahalle/{IlceKod}/{BirimKod:int}"
+@inject KarneHazirlayici Hazirlayici
+
+<PageTitle>@(_detay?.BirimAdi ?? "Mahalle")</PageTitle>
+
+<MudLink Href="@($"karne?ilce={Uri.EscapeDataString(IlceKod)}")" Typo="Typo.body2">← Mahalle karnesi</MudLink>
+
+@if (!_yuklendi)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="mt-4" />
+}
+else if (_detay is not { } d)
+{
+    <MudAlert Severity="Severity.Info" Class="mt-4">@IlceKod ilçesinde @BirimKod kodlu mahalle/köy bulunamadı.</MudAlert>
+}
+else
+{
+    <MudText Typo="Typo.h4" Class="mt-2">@d.BirimAdi</MudText>
+    <MudText Class="mb-4">
+        @d.Ilce.IlAdi / @d.Ilce.Ad · kod @d.BirimKod
+        @if (d.Sinir is { } s)
+        {
+            <span> · karşılaştırılabilir dönem <b>@s.Donem</b></span>
+        }
+    </MudText>
+
+    @if (d.Sinir is { SupheliVar: true } sv)
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-4">
+            @Metinler.Uyari(sv.SupheliYillar(sv.DonemSonu))
+        </MudAlert>
+    }
+    @if (d.Sinir is { } sd && sd.DonemBaslangici > sd.Yillar[0].Yil)
+    {
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-4">
+            Bu birimin sınırı @(sd.DonemBaslangici) seçiminde değişti ya da birim o seçimde kuruldu. @sd.DonemBaslangici öncesiyle
+            karşılaştırma aynı toprağı göstermez.
+        </MudAlert>
+    }
+
+    @foreach (var grup in d.Satirlar.GroupBy(x => x.OyTuru).OrderBy(g => g.Key))
+    {
+        <MudText Typo="Typo.h6" Class="mt-4 mb-2">@Metinler.Ad(grup.Key)</MudText>
+        <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mb-2">
+            <thead>
+                <tr>
+                    <th>Seçim</th>
+                    <th class="sayi">Sandık</th>
+                    <th class="sayi">Toplam oy</th>
+                    <th class="sayi">DSP oyu</th>
+                    <th class="sayi">DSP %</th>
+                    <th class="sayi">Puan farkı</th>
+                    <th>Sınır durumu</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in grup.OrderBy(x => x.Yil))
+                {
+                    var kesinti = r.Sinir?.Sonuc is SinirDurumu.SiniriDegisti or SinirDurumu.Yeni;
+                    <tr class="@(r.Sinir?.Sonuc == SinirDurumu.Supheli ? "satir-supheli" : "")">
+                        <td>@r.Yil</td>
+                        <td class="sayi">@Metinler.Oy(r.SandikSayisi)</td>
+                        <td class="sayi">@Metinler.Oy(r.ToplamOy)</td>
+                        <td class="sayi" title="@(r.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oy(r.DspOyu)</td>
+                        <td class="sayi" title="@(r.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oran(r.DspOrani)</td>
+                        <td class="sayi">
+                            @if (r.PuanFarki is not null && kesinti)
+                            {
+                                <MudTooltip Text="@($"Sınır {r.Yil} seçiminde değişti; {r.OncekiYil} ile karşılaştırma aynı toprağı göstermez.")">
+                                    <span class="soluk">@Metinler.Puan(r.PuanFarki) ⚠</span>
+                                </MudTooltip>
+                            }
+                            else
+                            {
+                                <span title="@(r.OncekiYil is { } o ? $"{o} seçimine göre, yüzde puan" : null)">@Metinler.Puan(r.PuanFarki)</span>
+                            }
+                        </td>
+                        <td><SinirEtiketi Durum="r.Sinir" /></td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+
+    @if (d.Sinir is { } sg)
+    {
+        <MudText Typo="Typo.h6" Class="mt-6 mb-2">Sınır geçmişi</MudText>
+        <MudSimpleTable Dense="true" Bordered="true">
+            <thead>
+                <tr>
+                    <th>Seçim</th>
+                    <th class="sayi">İlçe meclis oyundaki pay</th>
+                    <th class="sayi">Pay değişimi</th>
+                    <th>Otomatik tespit</th>
+                    <th>Sonuç</th>
+                    <th>İnsan kararı</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var y in sg.Yillar)
+                {
+                    <tr class="@(y.Sonuc == SinirDurumu.Supheli ? "satir-supheli" : "")">
+                        <td>@y.Yil</td>
+                        <td class="sayi">@(y.Pay is { } p ? "%" + (p * 100).ToString("N2", Metinler.Turkce) : Metinler.Bos)</td>
+                        <td class="sayi">@(y.PayDegisimi is { } pd ? Metinler.Yuzde(pd) : Metinler.Bos)</td>
+                        <td>@Metinler.Ad(y.Otomatik)</td>
+                        <td><SinirEtiketi Durum="y" /></td>
+                        <td>@(y.Karar ?? Metinler.Bos)</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+
+    <RaporNotlari Esikler="d.Esikler">
+        <li>Puan farkı: DSP oranının bir önceki yerel seçime göre farkı, yüzde puan.</li>
+        <li>"—": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.</li>
+        <li>Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.</li>
+    </RaporNotlari>
+}
+
+@code {
+    [Parameter] public string IlceKod { get; set; } = "";
+    [Parameter] public int BirimKod { get; set; }
+
+    private MahalleDetayi? _detay;
+    private bool _yuklendi;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _detay = await Hazirlayici.MahalleAsync(IlceKod, BirimKod);
+        _yuklendi = true;
+    }
+}

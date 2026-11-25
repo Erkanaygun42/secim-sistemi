@@ -97,4 +97,12 @@ public sealed class KarneHazirlayici(IDbContextFactory<SecimDbContext> fabrika)
         var cozulmus = new KarneSorgusu(ilce.Kod, secim.Id, Metinler.Kod(oyTuru), KarneSorgusu.Kod(alan), azalan ? "azalan" : "artan");
         return new KarneSonucu(ilceler, secimler, oyTurleri, karne, alan, azalan, cozulmus);
     }
+
+    /// <summary>Mahalle detayı; ilçe ya da birim yoksa boş.</summary>
+    public async Task<MahalleDetayi?> MahalleAsync(string ilceKod, int birimKod, CancellationToken ct = default)
+    {
+        await using var db = await fabrika.CreateDbContextAsync(ct);
+        var servis = new KarneServisi(db);
+        return await servis.IlceAsync(ilceKod, ct) is { } ilce ? await servis.MahalleAsync(ilce, birimKod, ct) : null;
+    }
 }
