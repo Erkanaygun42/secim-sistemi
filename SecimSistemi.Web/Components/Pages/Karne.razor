@@ -18,12 +18,7 @@ else
 {
     <MudPaper Outlined="true" Class="pa-4 mb-4">
         <div class="filtreler">
-            <MudSelect T="string" Label="İlçe" Value="@k.Ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
-                @foreach (var i in _sonuc.Ilceler)
-                {
-                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
-                }
-            </MudSelect>
+            <IlIlceSecici Ilceler="_sonuc.Ilceler" Ilce="k.Ilce" IlceDegisti="IlceDegisti" />
             <MudSelect T="int" Label="Seçim" Value="@k.Secim.Id" ValueChanged="SecimDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
                 @foreach (var s in _sonuc.Secimler)
                 {

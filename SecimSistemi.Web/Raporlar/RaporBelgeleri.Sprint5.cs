@@ -127,4 +127,45 @@ public static partial class RaporBelgeleri
         return new RaporBelgesi("Belediye meclisi hesaplayıcı", m.FiltreOzeti, kaynaklar, uretim, bolumler,
             [.. MeclisNotlari, $"Veri kaynağı: {Metinler.VeriKaynagi}."], dosya, m.UyeUyarisi);
     }
+
+    // ---------------- İl özeti ----------------
+
+    public static readonly string[] IlNotlari =
+    [
+        "Değerler her ilçenin tamamı içindir (erime raporundaki ilçe tablosuyla aynı hesap). Taban 2009; son seçim, DSP'nin o oy türünde pusulada olduğu en son yerel seçim.",
+        "İlçe sınırlarının 2009'dan beri değişmediği varsayılır (doğrulanmadı).",
+        "Toplam satırı yalnızca yüklü ilçelerin toplamıdır; il geneli değildir.",
+    ];
+
+    public static Sutun[] IlSutunlari() =>
+    [
+        new("#", HucreTuru.Kod), new(Soz.Ilce), new(Soz.MahalleSayisi, HucreTuru.Kod), new(Soz.SonYil, HucreTuru.Kod),
+        new(Soz.ToplamOy, HucreTuru.Tamsayi), new(Soz.DspOyu, HucreTuru.Tamsayi), new(Soz.DspOrani, HucreTuru.Oran),
+        new(Soz.TabanOraniIlce, HucreTuru.Oran), new($"Puan ({Metinler.Yonelme(ErimeHesabi.TabanYili)} göre)", HucreTuru.Puan, Soz.PuanTabana),
+        new(Soz.Korunma, HucreTuru.Katsayi), new("Beklenen oy", HucreTuru.Tamsayi, Soz.Beklenen), new("Kayıp oy", HucreTuru.Tamsayi, Soz.Kayip),
+        new(Soz.SupheliMahalle, HucreTuru.Kod),
+    ];
+
+    public static RaporBelgesi IlOzeti(IlOzeti o, KaynakListesi kaynaklar, DateTime uretim)
+    {
+        var il = o.Il ?? throw new ArgumentException("İl yok.", nameof(o));
+        var satirlar = o.Ilceler.Select((x, i) => new RaporSatiri(
+        [
+            i + 1, x.Ilce.Ad, x.MahalleSayisi, x.Son?.Yil, x.Son?.ToplamOy, x.Son?.DspOyu, x.Oran, x.Taban?.Oran, x.Puan, x.Korunma,
+            x.Son?.BeklenenOy, x.Kayip, x.SupheliMahalle,
+        ], x.SupheliMahalle > 0 ? SatirTuru.Uyari : SatirTuru.Normal)).ToList();
+        satirlar.Add(new RaporSatiri(
+        [
+            null, "Yüklü ilçelerin toplamı", o.Ilceler.Sum(x => x.MahalleSayisi), o.ToplamSon?.Yil, o.ToplamSon?.ToplamOy, o.ToplamSon?.DspOyu,
+            o.ToplamSon?.Oran, o.ToplamTaban?.Oran, o.ToplamSon?.PuanFarki, o.ToplamSon?.KorunmaOrani, o.ToplamSon?.BeklenenOy,
+            o.ToplamSon?.KayipOy, o.Ilceler.Sum(x => x.SupheliMahalle),
+        ], SatirTuru.Toplam));
+
+        var grafikler = new List<Grafik>();
+        if (RaporGrafikleri.IlKayip(o) is { } kg) grafikler.Add(kg);
+        var tablo = new TabloBolumu($"{il} · {Metinler.Ad(o.OyTuru)} · ilçeler", "İlçeler",
+            "Satırdaki şüpheli mahalle sayısı sıfırdan büyükse satır sarıdır.", IlSutunlari(), satirlar, [], grafikler);
+        return new RaporBelgesi($"İl özeti · {il}", o.FiltreOzeti, kaynaklar, uretim, [tablo],
+            [.. IlNotlari, $"Veri kaynağı: {Metinler.VeriKaynagi}."], $"il_{il}_{Metinler.Kod(o.OyTuru)}", o.KapsamUyarisi);
+    }
 }

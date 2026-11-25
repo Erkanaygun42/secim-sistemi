@@ -444,3 +444,16 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   yalnızca dolaylı çelişkiler yakalanır.
 - **`yukle-hepsi` önce denetimi çalıştırır:** hata varsa hiçbir dosya yüklenmez; eksik dosyalar bildirilir, mevcutlar yüklenir.
 
+### K44. İl seçimi ve il özeti
+- **İl seçimi:** karne, erime, gruplar, öncelik ve meclis sayfalarında ortak il ve ilçe seçicisi (`IlIlceSecici`). İlçe kodu
+  ilini içerdiği için adreste ayrı il parametresi yok; il değişince o ilin ilk ilçesi seçilir. Tek il yüklüyken il seçicisi
+  gizlidir. Yeni ilçe yüklenince listelerde kendiliğinden görünür.
+- **İl özeti (`/il?il=İSTANBUL&oy-turu=…&sirala=kayip`):** ildeki yüklü ilçeler; değerler ilçenin tamamı için erime raporunun
+  ilçe tablosuyla aynı hesap (`ErimeHesabi.IlceErimesi`): son seçimde DSP oranı, 2009 oranı, 2009'a göre puan farkı, korunma,
+  beklenen ve kayıp oy, sınır şüphesi olan mahalle sayısı. Sıra: kayıp oy azalan (varsayılan), DSP oranı, puan, korunma ya da
+  ad; boş değer iki yönde de sonda. Toplam satırı yüklü ilçelerin bütün mahallelerinin toplamıdır. Kayıp oy çubuk grafiği.
+  Excel ve PDF: `/disa-aktar/il.{xlsx|pdf}`.
+- **Doğrulanmamış, uyarıyla:** ilin bütün ilçeleri yüklü değilse "toplam il geneli değildir" uyarısı (sayfada, PDF'te, Excel'de);
+  ilçe sınırlarının 2009'dan beri değişmediği varsayımı notlarda. İllerin ilçe sayısı `IlOzetiHazirlayici.IlceSayilari`'nda
+  (İstanbul 39, Kocaeli 12).
+

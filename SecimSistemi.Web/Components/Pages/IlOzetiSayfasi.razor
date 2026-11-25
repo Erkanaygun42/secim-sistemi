@@ -1,0 +1,149 @@
+@page "/il"
+@inject IlOzetiHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>İl özeti</PageTitle>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Il is not { } il || _sonuc.Ilceler.Count == 0)
+{
+    <MudText Typo="Typo.h4" GutterBottom="true">İl özeti</MudText>
+    <MudAlert Severity="Severity.Info">Veritabanında yerel seçim verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudText Typo="Typo.h4" GutterBottom="true">İl özeti · @il</MudText>
+
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İl" Value="@il" ValueChanged="IlDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Iller)
+                {
+                    <MudSelectItem Value="@i">@i</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Oy türü" Value="@Metinler.Kod(_sonuc.OyTuru)" ValueChanged="OyTuruDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.Seriler)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSpacer />
+            <DisaAktarButonlari Rapor="il" Sorgu="@_sonuc.Sorgu.SorguMetni()" />
+        </div>
+    </MudPaper>
+
+    @if (_sonuc.KapsamUyarisi is { } kapsam)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mb-3">@kapsam</MudAlert>
+    }
+
+    @if (_sonuc.ToplamSon is { } t)
+    {
+        <MudText Class="mb-3">
+            Yüklü ilçelerin toplamı · @t.Yil · @Metinler.Ad(_sonuc.OyTuru): DSP @Metinler.Oy(t.DspOyu) oy (%@Metinler.Oran(t.Oran));
+            @ErimeHesabi.TabanYili'da %@Metinler.Oran(_sonuc.ToplamTaban?.Oran), puan farkı @Metinler.Puan(t.PuanFarki),
+            kayıp @Metinler.Oy(t.KayipOy) oy.
+        </MudText>
+    }
+
+    <GrafikKutusu Grafik="RaporGrafikleri.IlKayip(_sonuc)" />
+
+    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="genis-tablo mb-2">
+        <thead>
+            <tr>
+                <th class="sayi">#</th>
+                @Baslik(IlSiraAlani.Ad, SutunSozlugu.Ilce, null, false)
+                <SutunBasligi Tanim="SutunSozlugu.MahalleSayisi" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.SonYil" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.ToplamOy" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.DspOyu" Sag="true" />
+                @Baslik(IlSiraAlani.DspOrani, SutunSozlugu.DspOrani, null, true)
+                <SutunBasligi Tanim="SutunSozlugu.TabanOraniIlce" Sag="true" />
+                @Baslik(IlSiraAlani.Puan, SutunSozlugu.PuanTabana, $"Puan ({Metinler.Yonelme(ErimeHesabi.TabanYili)} göre)", true)
+                @Baslik(IlSiraAlani.Korunma, SutunSozlugu.Korunma, null, true)
+                <SutunBasligi Baslik="Beklenen oy" Tanim="SutunSozlugu.Beklenen" Sag="true" />
+                @Baslik(IlSiraAlani.Kayip, SutunSozlugu.Kayip, "Kayıp oy", true)
+                <SutunBasligi Tanim="SutunSozlugu.SupheliMahalle" Sag="true" />
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (x, i) in _sonuc.Ilceler.Select((x, i) => (x, i + 1)))
+            {
+                <tr class="@(x.SupheliMahalle > 0 ? "satir-supheli" : "")">
+                    <td class="sayi">@i</td>
+                    <td><MudLink Href="@($"erime?ilce={Uri.EscapeDataString(x.Ilce.Kod)}&oy-turu={Metinler.Kod(_sonuc.OyTuru)}")">@x.Ilce.Ad</MudLink></td>
+                    <td class="sayi">@x.MahalleSayisi</td>
+                    <td class="sayi">@(x.Son?.Yil.ToString() ?? Metinler.Bos)</td>
+                    <td class="sayi">@Metinler.Oy(x.Son?.ToplamOy)</td>
+                    <td class="sayi">@Metinler.Oy(x.Son?.DspOyu)</td>
+                    <td class="sayi">@Metinler.Oran(x.Oran)</td>
+                    <td class="sayi">@Metinler.Oran(x.Taban?.Oran)</td>
+                    <td class="sayi">@Metinler.Puan(x.Puan)</td>
+                    <td class="sayi">@Metinler.Katsayi(x.Korunma)</td>
+                    <td class="sayi">@Metinler.Oy(x.Son?.BeklenenOy)</td>
+                    <td class="sayi"><b>@Metinler.Oy(x.Kayip)</b></td>
+                    <td class="sayi">@x.SupheliMahalle</td>
+                </tr>
+            }
+        </tbody>
+        @if (_sonuc.ToplamSon is { } ts)
+        {
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td><b>Yüklü ilçelerin toplamı</b></td>
+                    <td class="sayi"><b>@_sonuc.Ilceler.Sum(x => x.MahalleSayisi)</b></td>
+                    <td class="sayi">@ts.Yil</td>
+                    <td class="sayi"><b>@Metinler.Oy(ts.ToplamOy)</b></td>
+                    <td class="sayi"><b>@Metinler.Oy(ts.DspOyu)</b></td>
+                    <td class="sayi"><b>@Metinler.Oran(ts.Oran)</b></td>
+                    <td class="sayi"><b>@Metinler.Oran(_sonuc.ToplamTaban?.Oran)</b></td>
+                    <td class="sayi"><b>@Metinler.Puan(ts.PuanFarki)</b></td>
+                    <td class="sayi"><b>@Metinler.Katsayi(ts.KorunmaOrani)</b></td>
+                    <td class="sayi"><b>@Metinler.Oy(ts.BeklenenOy)</b></td>
+                    <td class="sayi"><b>@Metinler.Oy(ts.KayipOy)</b></td>
+                    <td class="sayi"><b>@_sonuc.Ilceler.Sum(x => x.SupheliMahalle)</b></td>
+                </tr>
+            </tfoot>
+        }
+    </MudSimpleTable>
+
+    <RaporNotlari Maddeler="RaporBelgeleri.IlNotlari" />
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "il")] public string? Il { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+    [SupplyParameterFromQuery(Name = "sirala")] public string? Sirala { get; set; }
+    [SupplyParameterFromQuery(Name = "yon")] public string? Yon { get; set; }
+
+    private IlOzeti? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new IlOzetiSorgusu(Il, OyTuru, Sirala, Yon));
+
+    private void Git(IlOzetiSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()));
+    private void IlDegisti(string il) => Git(_sonuc!.Sorgu with { Il = il });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+
+    /// <summary>Sıralanabilir başlık: ilk tıklamada sayılar büyükten küçüğe, ad A'dan Z'ye; ikinci tıklama yönü çevirir.</summary>
+    private RenderFragment Baslik(IlSiraAlani alan, SutunTanimi tanim, string? metin, bool sag) => __builder =>
+    {
+        var secili = _sonuc!.Alan == alan;
+        var azalan = secili ? !_sonuc.Azalan : alan != IlSiraAlani.Ad;
+        var adres = Nav.GetUriWithQueryParameters((_sonuc.Sorgu with { Sirala = IlOzetiSorgusu.Kod(alan), Yon = azalan ? "azalan" : "artan" }).Parametreler());
+        <th class="@(sag ? "sayi" : "")">
+            <a class="sira-basligi" href="@adres" title="@($"{metin ?? tanim.Ad} sütununa göre sırala")">
+                @(metin ?? tanim.Ad)
+                @if (secili)
+                {
+                    <MudIcon Icon="@(_sonuc.Azalan ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)" Size="Size.Small" />
+                }
+            </a><Ipucu Tanim="tanim" />
+        </th>
+    };
+}

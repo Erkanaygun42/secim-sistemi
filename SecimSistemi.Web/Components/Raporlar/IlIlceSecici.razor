@@ -1,0 +1,30 @@
+@* İl ve ilçe seçicisi. İlçe kodu ilini içerdiği için adreste ayrı il parametresi yoktur; il değişince o ilin ilk ilçesi seçilir.
+   Yeni ilçe yüklenince listelerde kendiliğinden görünür. *@
+
+@if (Iller.Count > 1)
+{
+    <MudSelect T="string" Label="İl" Value="@Ilce?.IlAdi" ValueChanged="IlDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+        @foreach (var il in Iller)
+        {
+            <MudSelectItem Value="@il">@il (@Ilceler.Count(i => i.IlAdi == il) ilçe)</MudSelectItem>
+        }
+    </MudSelect>
+}
+<MudSelect T="string" Label="@(Iller.Count > 1 ? "İlçe" : $"İlçe · {Ilce?.IlAdi}")" Value="@Ilce?.Kod" ValueChanged="IlceDegisti"
+           Variant="Variant.Outlined" Margin="Margin.Dense">
+    @foreach (var i in Ilceler.Where(i => i.IlAdi == Ilce?.IlAdi))
+    {
+        <MudSelectItem Value="@i.Kod">@i.Ad</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<IlceSecenegi> Ilceler { get; set; } = [];
+    [Parameter, EditorRequired] public IlceSecenegi? Ilce { get; set; }
+    [Parameter, EditorRequired] public EventCallback<string> IlceDegisti { get; set; }
+
+    private IReadOnlyList<string> Iller => Ilceler.Select(i => i.IlAdi).Distinct().ToList();
+
+    private Task IlDegisti(string il) =>
+        Ilceler.FirstOrDefault(i => i.IlAdi == il) is { } ilk ? IlceDegisti.InvokeAsync(ilk.Kod) : Task.CompletedTask;
+}

@@ -127,6 +127,24 @@ public static class SutunSozlugu
         "Son seçimdeki toplam oya göre ilçedeki sırası (1 = en büyük). Seçmen sayısı YSK dosyalarında yok.",
         "5 → ilçenin 5. büyük mahallesi.");
 
+    // ---------------- İl özeti ----------------
+
+    public static readonly SutunTanimi Ilce = new("İlçe", "Yüklü ilçe. Adına tıklayınca o ilçenin erime raporu açılır.");
+
+    public static readonly SutunTanimi MahalleSayisi = new("Mahalle", "Son seçimde ilçedeki mahalle sayısı.");
+
+    public static readonly SutunTanimi SonYil = new("Son seçim",
+        "DSP'nin o oy türünde kendi listesiyle pusulada olduğu en son yerel seçim.");
+
+    public static readonly SutunTanimi TabanOraniIlce = new("2009 DSP %",
+        "İlçenin tamamında 2009'daki DSP oranı, yüzde (erimenin tabanı). İlçe sınırının 2009'dan beri değişmediği varsayılır.",
+        "0,98 → 2009'da ilçedeki her 1.000 oyun yaklaşık 10'u DSP'nin.");
+
+    public static readonly SutunTanimi SupheliMahalle = new("Şüpheli mahalle",
+        "Son seçime göre karşılaştırılabilir döneminde sınır şüphesi olan (sınır kararı girilmemiş) mahalle sayısı. " +
+        "Bu mahallelerin yıllar arası karşılaştırması kesin değildir.",
+        "3 → üç mahallede sınır kararı bekleniyor.");
+
     // ---------------- Meclis hesaplayıcısı ----------------
 
     public static readonly SutunTanimi Liste = new("Liste", "Parti listesi ya da bağımsız aday.");

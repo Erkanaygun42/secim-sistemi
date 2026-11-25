@@ -50,6 +50,18 @@ public static class RaporGrafikleri
         return grafikler;
     }
 
+    /// <summary>İl özetinde ilçelerin kayıp oyu (kaybı olanlar, büyükten küçüğe); hiçbir ilçede kayıp yoksa boş.</summary>
+    public static CubukGrafigi? IlKayip(IlOzeti o)
+    {
+        var cubuklar = o.Ilceler.Where(x => x.Kayip > 0).OrderByDescending(x => x.Kayip)
+            .Select(x => new Cubuk(x.Ilce.Ad, x.Kayip!.Value,
+                $"{ErimeHesabi.TabanYili}: %{Metinler.Oran(x.Taban?.Oran)} → {x.Son?.Yil}: %{Metinler.Oran(x.Oran)}", x.SupheliMahalle > 0))
+            .ToList();
+        return cubuklar.Count == 0 ? null : new CubukGrafigi($"İlçelerin kayıp oyu · {Metinler.Ad(o.OyTuru)}",
+            $"Kayıp oy = DSP {ErimeHesabi.TabanYili} oranını koruyabilseydi alacağı oy − gerçek oy; ilçenin tamamı. ⚠: ilçede sınır şüphesi olan mahalle var.",
+            "oy", cubuklar);
+    }
+
     /// <summary>Grafikte adı yazılan uç nokta sayısı (diğerlerinin adı ipucunda ve tablodadır).</summary>
     public const int EtiketliNokta = 6;
 

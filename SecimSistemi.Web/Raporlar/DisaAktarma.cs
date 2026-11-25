@@ -5,7 +5,7 @@ namespace SecimSistemi.Web.Raporlar;
 /// böylece dosyada ekrandaki tablo çıkar. Raporlar: karne, mahalle (ilce, birim), erime, gruplar, oncelik, meclis.
 /// </summary>
 public sealed class BelgeHazirlayici(KarneHazirlayici karne, ErimeHazirlayici erime, GrupHazirlayici grup, MeclisHazirlayici meclis,
-    RaporKaynaklari kaynaklar, TimeProvider zaman)
+    IlOzetiHazirlayici ilOzeti, RaporKaynaklari kaynaklar, TimeProvider zaman)
 {
     public async Task<RaporBelgesi?> HazirlaAsync(string rapor, IQueryCollection q, CancellationToken ct = default)
     {
@@ -44,6 +44,17 @@ public sealed class BelgeHazirlayici(KarneHazirlayici karne, ErimeHazirlayici er
                 if (m.Ilce is null || m.Secim is null || m.Mevcut is null) return null;
                 return RaporBelgeleri.Meclis(m, await kaynaklar.ListeleAsync(m.Ilce.Id, m.Secim.Id, Domain.OyTuru.BelediyeMeclisi, ct), uretim);
             }
+            case "il":
+            {
+                var o = await ilOzeti.HazirlaAsync(IlOzetiSorgusu.Oku(q), ct);
+                if (o.Il is null || o.Ilceler.Count == 0) return null;
+                // Kaynaklar: yüklü ilçelerin dosyaları birlikte.
+                var listeler = new List<KaynakListesi>();
+                foreach (var i in o.Ilceler) listeler.Add(await kaynaklar.ListeleAsync(i.Ilce.Id, ct: ct));
+                var birlesik = new KaynakListesi([.. listeler.SelectMany(l => l.Dosyalar).Order(StringComparer.Ordinal)],
+                    listeler.Max(l => l.SonYukleme));
+                return RaporBelgeleri.IlOzeti(o, birlesik, uretim);
+            }
             default:
                 return null;
         }
@@ -65,6 +76,7 @@ public static class DisaAktarmaUclari
         s.AddScoped<BelgeHazirlayici>();
         s.AddScoped<GrupHazirlayici>();
         s.AddScoped<MeclisHazirlayici>();
+        s.AddScoped<IlOzetiHazirlayici>();
         // Meclis üye sayıları: Tanimlar/meclis-uye-sayilari.csv (Importer'dan uygulamanın çıktı klasörüne kopyalanır).
         s.AddSingleton(_ => MeclisUyeTanimlari.Yukle());
         s.AddSingleton<PdfUretici>();
