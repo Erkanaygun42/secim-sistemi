@@ -1,17 +1,19 @@
 @inherits LayoutComponentBase
+@inject Gorunum Gorunum
 
-<MudThemeProvider Theme="Tema.Uygulama" />
+<MudThemeProvider Theme="_tema" />
 <MudPopoverProvider />
 <MudDialogProvider />
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar Elevation="1" Dense="true">
+    <MudAppBar Elevation="0" Dense="true" Class="ust-cubuk" Style="@($"border-bottom: 3px solid {Gorunum.AnaRenk};")">
         <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
                        OnClick="@(() => _menuAcik = !_menuAcik)" aria-label="Menüyü aç/kapat" />
-        <MudText Typo="Typo.h6" Class="ml-2">DSP Seçim Analizi</MudText>
+        <a href="" class="logo-baglantisi"><img src="@Gorunum.LogoAdresi" alt="Demokratik Sol Parti" class="logo" /></a>
+        <MudText Typo="Typo.h6" Class="ml-3">Seçim Analizi</MudText>
         <MudSpacer />
-        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Outlined">Partiye özel</MudChip>
+        <span class="partiye-ozel" style="@($"background: {Gorunum.AnaRenk}; color: {Gorunum.BantYazisi};")">Partiye özel</span>
     </MudAppBar>
     <MudDrawer @bind-Open="_menuAcik" ClipMode="DrawerClipMode.Always" Elevation="1">
         <NavMenu />
@@ -29,4 +31,7 @@
 
 @code {
     private bool _menuAcik = true;
+    private MudTheme _tema = default!;
+
+    protected override void OnInitialized() => _tema = Tema.Olustur(Gorunum);
 }

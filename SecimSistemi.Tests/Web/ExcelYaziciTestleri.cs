@@ -9,11 +9,10 @@ public class ExcelYaziciTestleri
     private static XLWorkbook Ac(RaporBelgesi b) => new(new MemoryStream(ExcelYazici.Yaz(b)));
 
     private static RaporBelgesi Karne() =>
-        RaporBelgeleri.Karne(RaporBelgeleriTestleri.OrnekKarne(), ["2024_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026)"],
-            RaporBelgeleriTestleri.Uretim);
+        RaporBelgeleri.Karne(RaporBelgeleriTestleri.OrnekKarne(), RaporBelgeleriTestleri.Kaynaklar, RaporBelgeleriTestleri.Uretim);
 
     [Fact]
-    public void BilgiSayfasi_IbareFiltreKaynakTarih()
+    public void BilgiSayfasi_IbareFiltreKaynakTarih_NasilOkunur_DosyalarSonda()
     {
         using var k = Ac(Karne());
         var s = k.Worksheet(1);
@@ -24,9 +23,16 @@ public class ExcelYaziciTestleri
             .ToDictionary(r => r.Cell(1).GetString(), r => r.Cell(2).GetString());
         Assert.Equal("Mahalle karnesi", degerler["Rapor"]);
         Assert.StartsWith("İSTANBUL / ESENYURT · 2024", degerler["Filtre"]);
-        Assert.Equal(Metinler.VeriKaynagi, degerler["Veri kaynağı"]);
+        Assert.Equal("YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 2 dosya · son yükleme 3 Kasım 2026", degerler["Veri kaynağı"]);
         Assert.Equal("25 Kasım 2026 14:30 (Türkiye saati)", degerler["Üretim tarihi"]);
-        Assert.Equal("2024_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026)", degerler["Yüklenen dosyalar"]);
+        Assert.Equal(SutunSozlugu.Donem.Aciklama, degerler["Karşılaştırılabilir dönem"]);
+
+        // Sıra: nasıl okunur → notlar → dosyaların tam listesi en sonda.
+        int Satir(string a) => s.CellsUsed().First(c => c.GetString() == a).Address.RowNumber;
+        Assert.True(Satir("Bu rapor nasıl okunur") < Satir("Notlar"));
+        Assert.True(Satir("Notlar") < Satir("Yüklenen dosyalar"));
+        Assert.Equal(s.LastRowUsed()!.RowNumber(), Satir("2024_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026)"));
+        Assert.Equal(XLColor.FromHtml(Gorunum.VarsayilanRenk), s.Cell(1, 1).Style.Fill.BackgroundColor);
     }
 
     [Fact]
@@ -44,7 +50,7 @@ public class ExcelYaziciTestleri
         Assert.Equal((XLDataType.Number, "0"), (s.Cell(5, 2).DataType, s.Cell(5, 2).Style.NumberFormat.Format)); // kod: ayraçsız
         Assert.Equal("İlçe toplamı", s.Cell(7, 3).GetString());
         Assert.True(s.Cell(7, 3).Style.Font.Bold);
-        Assert.Equal("A4:J6", s.AutoFilter.Range.RangeAddress.ToString()); // toplam satırı süzgecin dışında
+        Assert.Equal("A4:K6", s.AutoFilter.Range.RangeAddress.ToString()); // toplam satırı süzgecin dışında
     }
 
     [Fact]
@@ -60,7 +66,7 @@ public class ExcelYaziciTestleri
         Assert.Equal(XLColor.FromHtml("#FFF8E1"), s.Cell(5, 1).Style.Fill.BackgroundColor);
         Assert.Equal("—", s.Cell(5, 6).GetString());
         Assert.Equal("—", s.Cell(5, 7).GetString());
-        Assert.StartsWith("2019 seçiminde", s.Cell(5, 10).GetString());
+        Assert.StartsWith("2019 seçiminde", s.Cell(5, 11).GetString());
     }
 
     [Fact]
@@ -73,7 +79,7 @@ public class ExcelYaziciTestleri
             new(["A", 1853.0000000000000000000088m, 0.979417951943508m]),
         ];
         var bolum = new TabloBolumu("T", "Seri: [meclis] / başkan ve çok uzun bir sayfa adı", null, sutunlar, satirlar, ["not"]);
-        var b = new RaporBelgesi("R", "F", [], RaporBelgeleriTestleri.Uretim, [bolum, bolum], [], "r");
+        var b = new RaporBelgesi("R", "F", KaynakListesi.Bos, RaporBelgeleriTestleri.Uretim, [bolum, bolum], [], "r");
 
         using var k = Ac(b);
 
@@ -84,5 +90,20 @@ public class ExcelYaziciTestleri
         Assert.Equal(1853d, s.Cell(5, 2).GetDouble());
         Assert.Equal(0.9794d, s.Cell(5, 3).GetDouble());
         Assert.Equal("not", s.Cell(7, 1).GetString());
+    }
+
+    [Fact]
+    public void DonemDisiHucre_BosVeGri()
+    {
+        var b = RaporBelgeleri.Erime(RaporBelgeleriTestleri.OrnekErime(), KaynakListesi.Bos, RaporBelgeleriTestleri.Uretim);
+
+        using var k = Ac(b);
+        var s = k.Worksheet("Mahalle düzeyi");
+
+        Assert.Equal("2009 %", s.Cell(4, 5).GetString());
+        Assert.Equal(1d, s.Cell(5, 5).GetDouble());                       // A: 2009 dönem içinde
+        Assert.True(s.Cell(6, 5).IsEmpty());                              // B: 2009 dönem dışı → boş
+        Assert.Equal(ExcelYazici.DonemDisiRengi, s.Cell(6, 5).Style.Fill.BackgroundColor);
+        Assert.Equal(1d, s.Cell(6, 6).GetDouble());
     }
 }

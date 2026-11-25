@@ -1,6 +1,8 @@
 @* PDF'in HTML şablonu. HtmlRenderer ile metne çevrilir, Playwright (Chromium) PDF'e basar.
-   Yalnızca düz HTML ve satır içi CSS: MudBlazor ve dış dosya kullanılmaz (sayfa sunucuya istek atmadan basılır). *@
+   Yalnızca düz HTML, satır içi CSS ve SVG: MudBlazor ve dış dosya kullanılmaz (sayfa sunucuya istek atmadan basılır;
+   logo gömülü kaynaktan data: adresiyle gelir). Sıra: başlık bilgisi → tablolar ve grafikler → nasıl okunur → notlar → dosyalar. *@
 @using SecimSistemi.Web.Raporlar
+@inject Gorunum Gorunum
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -11,15 +13,19 @@
         @@page { size: A4 landscape; }
         * { box-sizing: border-box; }
         body { font-family: "Segoe UI", Arial, "DejaVu Sans", sans-serif; font-size: 8.5pt; color: #222; margin: 0; }
-        .ibare { border: 1.5px solid #c8102e; color: #c8102e; font-weight: 700; font-size: 10pt; letter-spacing: .5px;
-                 padding: 4px 8px; display: inline-block; margin-bottom: 8px; }
-        h1 { font-size: 15pt; margin: 2px 0 8px; }
-        h2 { font-size: 11pt; margin: 14px 0 3px; break-after: avoid; }
+        .ust { display: flex; align-items: center; justify-content: space-between; border-bottom: 3px solid @Gorunum.AnaRenk;
+               padding-bottom: 6px; margin-bottom: 8px; }
+        .ust img { height: 34px; }
+        .ibare { background: @Gorunum.AnaRenk; color: @Gorunum.BantYazisi; font-weight: 700; font-size: 10pt; letter-spacing: .5px;
+                 padding: 4px 10px; }
+        h1 { font-size: 15pt; margin: 2px 0 8px; color: @Gorunum.Koyu; }
+        h2 { font-size: 11pt; margin: 14px 0 3px; break-after: avoid; color: @Gorunum.Koyu; }
+        h3 { font-size: 9.5pt; margin: 8px 0 2px; break-after: avoid; }
         .bilgi { border-collapse: collapse; margin-bottom: 6px; width: 100%; }
         .bilgi th { text-align: left; width: 110px; vertical-align: top; padding: 2px 8px 2px 0; color: #555; }
         .bilgi td { padding: 2px 0; }
-        .dosyalar { font-size: 7.5pt; color: #555; }
         .aciklama { margin: 0 0 4px; color: #444; }
+        .grafik-kutusu { break-inside: avoid; margin: 4px 0 8px; max-width: 200mm; }
         table.veri { border-collapse: collapse; width: 100%; }
         table.veri th, table.veri td { border: 0.5px solid #bbb; padding: 2px 4px; vertical-align: top; }
         table.veri thead th { background: #f0f0f0; font-weight: 600; }
@@ -29,27 +35,27 @@
         tr.uyari td { background: #fff8e1; }
         tr.grup td { background: #e9e9e9; font-weight: 600; }
         tr.toplam td { font-weight: 700; }
+        table.veri td.donem-disi { background: #e6e6e6; }
         td.uyari-metni { font-size: 7pt; color: #6d4c00; max-width: 220px; }
+        .okuma { border-collapse: collapse; width: 100%; }
+        .okuma th, .okuma td { border-bottom: 0.5px solid #ddd; padding: 3px 6px 3px 0; vertical-align: top; text-align: left; }
+        .okuma td:first-child { font-weight: 600; width: 150px; }
+        .okuma td.ornek { color: #555; width: 38%; }
         .notlar { margin: 4px 0 0; padding-left: 16px; }
         .notlar li { margin-bottom: 2px; }
+        .dosyalar { columns: 2; font-size: 7.5pt; color: #444; }
         .bolum-notu { margin: 3px 0 0; font-size: 7.5pt; color: #444; }
     </style>
 </head>
 <body>
-    <div class="ibare">@Metinler.PartiyeOzel</div>
+    <div class="ust">
+        <img src="@Gorunum.LogoVeriAdresi" alt="Demokratik Sol Parti" />
+        <div class="ibare">@Metinler.PartiyeOzel</div>
+    </div>
     <h1>@Belge.Baslik</h1>
     <table class="bilgi">
         <tr><th>Filtre</th><td>@Belge.FiltreOzeti</td></tr>
-        <tr>
-            <th>Veri kaynağı</th>
-            <td>
-                @Metinler.VeriKaynagi
-                @if (Belge.Kaynaklar.Count > 0)
-                {
-                    <div class="dosyalar">Yüklenen dosyalar: @string.Join(" · ", Belge.Kaynaklar)</div>
-                }
-            </td>
-        </tr>
+        <tr><th>Veri kaynağı</th><td>@Belge.Kaynaklar.Ozet (dosyaların listesi en sonda)</td></tr>
         <tr><th>Üretim tarihi</th><td>@Belge.UretimMetni</td></tr>
     </table>
 
@@ -59,6 +65,17 @@
         @if (bolum.Aciklama is not null)
         {
             <p class="aciklama">@bolum.Aciklama</p>
+        }
+        @foreach (var g in bolum.GrafikListesi)
+        {
+            <div class="grafik-kutusu">
+                <h3>@g.Baslik</h3>
+                @if (g.Aciklama is not null)
+                {
+                    <p class="aciklama">@g.Aciklama</p>
+                }
+                @((MarkupString)SvgCizici.Ciz(g, Gorunum))
+            </div>
         }
         <table class="veri">
             <thead>
@@ -81,6 +98,11 @@
                         @for (var c = 0; c < bolum.Sutunlar.Count; c++)
                         {
                             var s = bolum.Sutunlar[c];
+                            if (satir.DonemDisiMi(c))
+                            {
+                                <td class="donem-disi"></td>
+                                continue;
+                            }
                             var deger = c < satir.Degerler.Count ? satir.Degerler[c] : null;
                             <td class="@HucreSinifi(s)">@HucreMetni.Yaz(s.Tur, deger)</td>
                         }
@@ -94,6 +116,17 @@
         }
     }
 
+    <h2>Bu rapor nasıl okunur</h2>
+    <table class="okuma">
+        <thead><tr><th>Sütun</th><th>Ne anlatır</th><th>Örnek</th></tr></thead>
+        <tbody>
+            @foreach (var t in Belge.Okuma)
+            {
+                <tr><td>@t.Ad</td><td>@t.Aciklama</td><td class="ornek">@(t.Ornek ?? "")</td></tr>
+            }
+        </tbody>
+    </table>
+
     <h2>Notlar</h2>
     <ul class="notlar">
         @foreach (var n in Belge.Notlar)
@@ -101,6 +134,21 @@
             <li>@n</li>
         }
     </ul>
+
+    <h2>Yüklenen dosyalar</h2>
+    @if (Belge.Kaynaklar.Dosyalar.Count == 0)
+    {
+        <p>@Metinler.Bos</p>
+    }
+    else
+    {
+        <ul class="dosyalar">
+            @foreach (var d in Belge.Kaynaklar.Dosyalar)
+            {
+                <li>@d</li>
+            }
+        </ul>
+    }
 </body>
 </html>
 
@@ -115,5 +163,5 @@
     };
 
     private static string HucreSinifi(Sutun s) =>
-        s.Baslik == "Uyarı" ? "uyari-metni" : s.Tur == HucreTuru.Metin ? "" : "sayi";
+        s.Tanim == SutunSozlugu.Uyari ? "uyari-metni" : s.Tur == HucreTuru.Metin ? "" : "sayi";
 }

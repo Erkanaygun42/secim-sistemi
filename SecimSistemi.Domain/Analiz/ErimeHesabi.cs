@@ -23,7 +23,15 @@ public sealed record ErimeSatiri(
     decimal? BeklenenOy,
     decimal? KayipOy,
     bool KaleMi,
-    string? Not);
+    string? Not,
+    IReadOnlyDictionary<int, decimal?>? Oranlar = null)
+{
+    /// <summary>Her seçimdeki oran (yüzde), dönem dışındakiler dahil; birimin olmadığı seçim anahtarda yoktur, DSP pusulada değilse değer boştur.</summary>
+    public IReadOnlyDictionary<int, decimal?> YillikOranlar => Oranlar ?? new Dictionary<int, decimal?>();
+
+    /// <summary>Yıl karşılaştırılabilir dönemin dışında mı (tabandan önce).</summary>
+    public bool DonemDisi(int yil) => yil < TabanYili;
+}
 
 /// <summary>2009 kaleleri grubunun bir seçimdeki ağırlıklı oranı: grubun DSP oyu ÷ grubun toplam oyu.</summary>
 public sealed record KaleOrtalamasi(int Yil, int BirimSayisi, long ToplamOy, long? DspOyu, decimal? Oran);
@@ -34,7 +42,12 @@ public sealed record ErimeRaporu(
     int? SonYil,
     IReadOnlyList<ErimeSatiri> Satirlar,
     IReadOnlyList<int> KaleKodlari,
-    IReadOnlyList<KaleOrtalamasi> KaleOrtalamalari);
+    IReadOnlyList<KaleOrtalamasi> KaleOrtalamalari,
+    IReadOnlyList<int>? SecimYillari = null)
+{
+    /// <summary>Seride verisi olan seçim yılları, eskiden yeniye (mahalle tablosunda yan yana oranlar için).</summary>
+    public IReadOnlyList<int> Yillar => SecimYillari ?? [];
+}
 
 /// <summary>İlçenin tamamı için bir seçimdeki değerler ve 2009'a göre erime.</summary>
 public sealed record IlceErimeSatiri(int Yil, long ToplamOy, long? DspOyu, decimal? Oran, decimal? PuanFarki, decimal? KorunmaOrani, decimal? BeklenenOy, decimal? KayipOy);
@@ -92,7 +105,10 @@ public static class ErimeHesabi
                 var tabanYili = tabanYillari?.GetValueOrDefault(g.Key, TabanYili) ?? TabanYili;
                 var taban = g.SingleOrDefault(k => k.Yil == tabanYili);
                 var son = sonYil is null ? null : g.SingleOrDefault(k => k.Yil == sonYil);
-                return Satir(g.Key, g.Last().BirimAdi, tabanYili, taban, son, kaleler.Contains(g.Key));
+                return Satir(g.Key, g.Last().BirimAdi, tabanYili, taban, son, kaleler.Contains(g.Key)) with
+                {
+                    Oranlar = g.OrderBy(k => k.Yil).ToDictionary(k => k.Yil, k => Oran(k)),
+                };
             })
             // Farklı tabanlardan gelen kayıplar birbiriyle sıralanamaz: önce taban yılı (en uzun dönem önce), sonra kayıp.
             .OrderBy(s => s.TabanYili)
@@ -114,7 +130,8 @@ public static class ErimeHesabi
             })
             .ToList();
 
-        return new ErimeRaporu(oyTuru, TabanYili, sonYil, satirlar, kaleKodlari.ToList(), kaleOrtalamalari);
+        var yillar = seri.Select(k => k.Yil).Distinct().Order().ToList();
+        return new ErimeRaporu(oyTuru, TabanYili, sonYil, satirlar, kaleKodlari.ToList(), kaleOrtalamalari, yillar);
     }
 
     /// <summary>

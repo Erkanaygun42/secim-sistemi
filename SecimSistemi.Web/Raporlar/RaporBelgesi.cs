@@ -27,7 +27,11 @@ public enum SatirTuru
     Toplam,
 }
 
-public sealed record Sutun(string Baslik, HucreTuru Tur = HucreTuru.Metin);
+/// <param name="Tanim">Sütunun açıklaması ve örneği (<see cref="SutunSozlugu"/>); "Bu rapor nasıl okunur" bölümüne girer.</param>
+public sealed record Sutun(string Baslik, HucreTuru Tur = HucreTuru.Metin, SutunTanimi? Tanim = null)
+{
+    public Sutun(SutunTanimi tanim, HucreTuru tur = HucreTuru.Metin) : this(tanim.Ad, tur, tanim) { }
+}
 
 /// <summary>Hücre değerinin metni (PDF'te). Biçimler ekrandakiyle aynıdır; boş sayı "—", boş metin boş kalır.</summary>
 public static class HucreMetni
@@ -50,22 +54,46 @@ public static class HucreMetni
 }
 
 /// <summary>Bir satırın değerleri; boş değer (null) "—" olarak yazılır.</summary>
-public sealed record RaporSatiri(IReadOnlyList<object?> Degerler, SatirTuru Tur = SatirTuru.Normal);
+/// <param name="DonemDisi">Karşılaştırılabilir dönemin dışında kalan hücrelerin sütun sıraları: boş ve gri yazılır.</param>
+public sealed record RaporSatiri(IReadOnlyList<object?> Degerler, SatirTuru Tur = SatirTuru.Normal, IReadOnlySet<int>? DonemDisi = null)
+{
+    public bool DonemDisiMi(int sutun) => DonemDisi?.Contains(sutun) == true;
+}
 
 /// <summary>Raporun bir tablosu: Excel'de ayrı bir sayfa, PDF'te bir bölüm.</summary>
 /// <param name="SayfaAdi">Excel sayfa adı (en çok 31 karakter).</param>
+/// <param name="Grafikler">PDF'te tablonun üstünde çizilir; Excel'de grafiğin verisi tablonun kendisidir.</param>
 public sealed record TabloBolumu(string Baslik, string SayfaAdi, string? Aciklama, IReadOnlyList<Sutun> Sutunlar,
-    IReadOnlyList<RaporSatiri> Satirlar, IReadOnlyList<string> Notlar);
+    IReadOnlyList<RaporSatiri> Satirlar, IReadOnlyList<string> Notlar, IReadOnlyList<Grafik>? Grafikler = null)
+{
+    public IReadOnlyList<Grafik> GrafikListesi => Grafikler ?? [];
+}
+
+/// <summary>Raporun dayandığı yüklenmiş YSK dosyaları ve en son yükleme zamanı (Türkiye saati).</summary>
+public sealed record KaynakListesi(IReadOnlyList<string> Dosyalar, DateTime? SonYukleme)
+{
+    public static readonly KaynakListesi Bos = new([], null);
+
+    /// <summary>Başlıkta görünen kısa özet: "YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 12 dosya · son yükleme 3 Kasım 2026".</summary>
+    public string Ozet =>
+        Metinler.VeriKaynagi
+        + (Dosyalar.Count == 0 ? "" : $" · {Dosyalar.Count} dosya")
+        + (SonYukleme is { } t ? $" · son yükleme {t.ToString("d MMMM yyyy", Metinler.Turkce)}" : "");
+}
 
 /// <summary>
 /// Excel ve PDF'in ortak modeli. Ekrandaki raporla aynı veriden ve aynı sırayla kurulur (<see cref="RaporBelgeleri"/>).
 /// Başlık bilgisi (filtre özeti, veri kaynağı, üretim tarihi, "partiye özel" ibaresi) her iki çıktıda da ilk yerde durur.
 /// </summary>
-/// <param name="Kaynaklar">Raporun dayandığı yüklenmiş YSK dosyaları: "dosya adı (yükleme tarihi)".</param>
+/// <param name="Kaynaklar">Raporun dayandığı yüklenmiş YSK dosyaları. Başlıkta yalnızca özeti, sonda tam listesi yer alır.</param>
 /// <param name="Uretim">Üretim zamanı, Türkiye saati.</param>
 /// <param name="DosyaAdi">Uzantısız dosya adı.</param>
-public sealed record RaporBelgesi(string Baslik, string FiltreOzeti, IReadOnlyList<string> Kaynaklar, DateTime Uretim,
+public sealed record RaporBelgesi(string Baslik, string FiltreOzeti, KaynakListesi Kaynaklar, DateTime Uretim,
     IReadOnlyList<TabloBolumu> Bolumler, IReadOnlyList<string> Notlar, string DosyaAdi)
 {
     public string UretimMetni => Uretim.ToString("d MMMM yyyy HH:mm", Metinler.Turkce) + " (Türkiye saati)";
+
+    /// <summary>"Bu rapor nasıl okunur": rapordaki sütunların tanımları, ilk göründükleri sırayla, her biri bir kez.</summary>
+    public IReadOnlyList<SutunTanimi> Okuma =>
+        Bolumler.SelectMany(b => b.Sutunlar).Select(s => s.Tanim).OfType<SutunTanimi>().Distinct().ToList();
 }

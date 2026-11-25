@@ -1,0 +1,18 @@
+@* Puan farkı hücresi. Sınır tam bu seçimde değiştiyse değer soluk ve ⚠ işaretli; üzerine gelince neden görünür. *@
+
+@if (Puan is not null && Uyari is not null)
+{
+    <MudTooltip Text="@Uyari">
+        <span class="soluk">@Metinler.Puan(Puan) ⚠</span>
+    </MudTooltip>
+}
+else
+{
+    <span title="@(OncekiYil is { } o ? $"{Metinler.Yonelme(o)} göre, yüzde puan" : null)">@Metinler.Puan(Puan)</span>
+}
+
+@code {
+    [Parameter] public decimal? Puan { get; set; }
+    [Parameter] public int? OncekiYil { get; set; }
+    [Parameter] public string? Uyari { get; set; }
+}

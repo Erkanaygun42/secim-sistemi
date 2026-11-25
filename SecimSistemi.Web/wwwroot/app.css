@@ -94,3 +94,65 @@ h1:focus {
     gap: 8px;
     margin-left: auto;
 }
+
+/* Üst çubuk: logo ve "partiye özel" bandı (renk Gorunum:AnaRenk ayarından gelir). */
+.ust-cubuk .logo {
+    height: 44px;
+    display: block;
+}
+
+.logo-baglantisi {
+    display: inline-flex;
+    margin-left: 8px;
+}
+
+.partiye-ozel {
+    font-weight: 700;
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: 4px;
+}
+
+/* Sütun başlığındaki ⓘ ipucu */
+.ipucu {
+    display: inline-block;
+    margin-left: 3px;
+    color: var(--mud-palette-primary);
+    cursor: help;
+    font-size: 0.8em;
+    font-weight: 400;
+    vertical-align: super;
+}
+
+/* Uzun açıklamalar balonda satır kaydırır. */
+.mud-tooltip {
+    max-width: 380px;
+    white-space: normal;
+    text-align: left;
+}
+
+/* Karşılaştırılabilir dönemin dışındaki hücre: boş ve gri */
+td.donem-disi {
+    background-color: #e6e6e6;
+}
+
+.grafik-kutusu svg {
+    margin-top: 4px;
+}
+
+.soluk-yazi {
+    color: #666;
+}
+
+/* Çok sütunlu tablo (erime, mahalle düzeyi): küçük yazı, sığmazsa yatay kaydırma. */
+.genis-tablo {
+    overflow-x: auto;
+}
+
+.genis-tablo td,
+.genis-tablo th {
+    font-size: 0.8rem;
+    padding: 4px 6px !important;
+}

@@ -41,22 +41,23 @@ else
     <MudText Typo="Typo.body2" Class="mb-3">
         @ilce.Ad ilçesinin tamamı. İlçe sınırı bu dönemde değişmedi; bu yüzden uzun dönem karşılaştırma ilçe düzeyinde yapılır.
     </MudText>
+    <GrafikKutusu Grafik="RaporGrafikleri.IlceOrani(_sonuc)" />
     <MudSimpleTable Dense="true" Bordered="true" Class="mb-2">
         <thead>
             <tr>
-                <th>Seri</th>
-                <th class="sayi">Yıl</th>
-                <th class="sayi">Toplam oy</th>
-                <th class="sayi">DSP oyu</th>
-                <th class="sayi">DSP %</th>
-                <th class="sayi">Puan (@ErimeHesabi.TabanYili'a göre)</th>
-                <th class="sayi">Korunma</th>
-                <th class="sayi">Beklenen oy</th>
-                <th class="sayi">Kayıp oy</th>
+                <SutunBasligi Tanim="SutunSozlugu.Seri" />
+                <SutunBasligi Tanim="SutunSozlugu.Yil" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.ToplamOy" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.DspOyu" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.DspOrani" Sag="true" />
+                <SutunBasligi Baslik="@PuanBasligi" Tanim="SutunSozlugu.PuanTabana" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Korunma" Sag="true" />
+                <SutunBasligi Baslik="Beklenen oy" Tanim="SutunSozlugu.Beklenen" Sag="true" />
+                <SutunBasligi Baslik="Kayıp oy" Tanim="SutunSozlugu.Kayip" Sag="true" />
             </tr>
         </thead>
         <tbody>
-            @foreach (var (seri, satirlar) in _sonuc.IlceErimesi)
+            @foreach (var (seri, satirlar) in _sonuc.IlceErimesi.OrderBy(kv => Metinler.SeriSirasi(kv.Key)))
             {
                 @foreach (var (s, i) in satirlar.Select((s, i) => (s, i)))
                 {
@@ -86,22 +87,28 @@ else
         Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir (son sınır değişikliğinden bugüne).
         Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce).
     </MudText>
-    <MudSimpleTable Dense="true" Hover="true" Bordered="true">
+    <GrafikKutusu Grafik="RaporGrafikleri.EnCokKaybeden(_sonuc)" />
+    var yillar = RaporBelgeleri.MahalleYillari(_sonuc);
+    var sutunSayisi = 11 + yillar.Count;
+    <MudText Typo="Typo.body2" Class="mb-2">Gri ve boş hücre: o yıl mahallenin karşılaştırılabilir döneminin dışında.</MudText>
+    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="genis-tablo">
         <thead>
             <tr>
                 <th class="sayi">#</th>
-                <th>Kod</th>
-                <th>Mahalle/köy</th>
-                <th class="sayi">Taban %</th>
-                <th class="sayi">Son %</th>
-                <th class="sayi">Puan</th>
-                <th class="sayi">Korunma</th>
-                <th class="sayi">Taban DSP</th>
-                <th class="sayi">Son DSP</th>
-                <th class="sayi">Son toplam</th>
-                <th class="sayi">Beklenen</th>
-                <th class="sayi">Kayıp</th>
-                <th>Kale</th>
+                <SutunBasligi Tanim="SutunSozlugu.Kod" />
+                <SutunBasligi Tanim="SutunSozlugu.Mahalle" />
+                @foreach (var y in yillar)
+                {
+                    <SutunBasligi Baslik="@YilBasligi(y)" Tanim="SutunSozlugu.YilOrani" Sag="true" />
+                }
+                <SutunBasligi Tanim="SutunSozlugu.PuanTabana" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Korunma" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.TabanDsp" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.SonDsp" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.SonToplam" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Beklenen" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Kayip" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Kale" />
             </tr>
         </thead>
         <tbody>
@@ -109,7 +116,7 @@ else
             @foreach (var grup in _sonuc.DonemGruplari())
             {
                 <tr class="satir-grup">
-                    <td colspan="13">Dönem <b>@grup.Key</b> · @grup.Count() birim</td>
+                    <td colspan="@sutunSayisi">Karşılaştırılabilir dönem <b>@grup.Key</b> · @grup.Count() birim<Ipucu Tanim="SutunSozlugu.Donem" /></td>
                 </tr>
                 @foreach (var s in grup)
                 {
@@ -127,8 +134,17 @@ else
                                 </MudTooltip>
                             }
                         </td>
-                        <td class="sayi">@Metinler.Oran(s.TabanOrani)</td>
-                        <td class="sayi">@Metinler.Oran(s.SonOrani)</td>
+                        @foreach (var y in yillar)
+                        {
+                            if (s.DonemDisi(y))
+                            {
+                                <td class="donem-disi" title="@DonemDisiIpucu(y, grup.Key)"></td>
+                            }
+                            else
+                            {
+                                <td class="sayi">@Metinler.Oran(s.YillikOranlar.GetValueOrDefault(y))</td>
+                            }
+                        }
                         <td class="sayi">@Metinler.Puan(s.PuanFarki)</td>
                         <td class="sayi">@Metinler.Katsayi(s.KorunmaOrani)</td>
                         <td class="sayi">@Metinler.Oy(s.TabanDspOyu)</td>
@@ -136,7 +152,7 @@ else
                         <td class="sayi">@Metinler.Oy(s.SonToplamOy)</td>
                         <td class="sayi">@Metinler.Oy(s.BeklenenOy)</td>
                         <td class="sayi"><b>@Metinler.Oy(s.KayipOy)</b></td>
-                        <td>@(s.KaleMi ? "kale" : "")</td>
+                        <td>@(s.KaleMi ? "evet" : "")</td>
                     </tr>
                 }
             }
@@ -148,26 +164,26 @@ else
     }
 
     @* ---------- 3. Kaleler ---------- *@
-    <MudText Typo="Typo.h5" Class="mt-6 mb-1">@ErimeHesabi.TabanYili kaleleri</MudText>
-    <MudText Typo="Typo.body2">@_sonuc.KaleOzeti</MudText>
+    <MudText Typo="Typo.h5" Class="mt-6 mb-1">@ErimeHesabi.TabanYili kaleleri<Ipucu Tanim="SutunSozlugu.Kale" /></MudText>
+    <MudText Typo="Typo.body2">@SutunSozlugu.Kale.Aciklama @(_sonuc.KaleOzeti).</MudText>
     <MudText Typo="Typo.body2" Class="mb-3">Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde:</MudText>
-    var yillar = _sonuc.Raporlar.Values.SelectMany(r => r.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();
+    var kaleYillari = _sonuc.Raporlar.Values.SelectMany(r => r.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();
     <MudSimpleTable Dense="true" Bordered="true" Style="max-width: 640px">
         <thead>
             <tr>
-                <th>Seri</th>
-                @foreach (var y in yillar)
+                <SutunBasligi Tanim="SutunSozlugu.Seri" />
+                @foreach (var y in kaleYillari)
                 {
-                    <th class="sayi">@y</th>
+                    <SutunBasligi Baslik="@YilBasligi(y)" Tanim="SutunSozlugu.KaleOrani" Sag="true" />
                 }
             </tr>
         </thead>
         <tbody>
-            @foreach (var (seri, r) in _sonuc.Raporlar)
+            @foreach (var (seri, r) in _sonuc.Raporlar.OrderBy(kv => Metinler.SeriSirasi(kv.Key)))
             {
                 <tr>
                     <td>@Metinler.Ad(seri)</td>
-                    @foreach (var y in yillar)
+                    @foreach (var y in kaleYillari)
                     {
                         <td class="sayi">@Metinler.Oran(r.KaleOrtalamalari.FirstOrDefault(k => k.Yil == y)?.Oran)</td>
                     }
@@ -184,6 +200,10 @@ else
     [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
 
     private ErimeSonucu? _sonuc;
+
+    private static readonly string PuanBasligi = $"Puan ({Metinler.Yonelme(ErimeHesabi.TabanYili)} göre)";
+    private static string YilBasligi(int y) => $"{y} %";
+    private static string DonemDisiIpucu(int y, string donem) => $"{y}: karşılaştırılabilir dönemin ({donem}) dışında";
 
     protected override async Task OnParametersSetAsync() =>
         _sonuc = await Hazirlayici.HazirlaAsync(new ErimeSorgusu(Ilce, OyTuru));

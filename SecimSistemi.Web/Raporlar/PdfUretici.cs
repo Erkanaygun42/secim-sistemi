@@ -12,7 +12,7 @@ namespace SecimSistemi.Web.Raporlar;
 /// tarayıcı bağlamında basılır.
 /// Chromium kurulumu (bir kez): <c>powershell -ExecutionPolicy Bypass -File SecimSistemi.Web/bin/Debug/net10.0/playwright.ps1 install chromium</c>
 /// </summary>
-public sealed class PdfUretici(IServiceScopeFactory kapsamlar, ILoggerFactory gunluk) : IAsyncDisposable
+public sealed class PdfUretici(IServiceScopeFactory kapsamlar, ILoggerFactory gunluk, Gorunum gorunum) : IAsyncDisposable
 {
     public const string IcerikTuru = "application/pdf";
 
@@ -21,9 +21,9 @@ public sealed class PdfUretici(IServiceScopeFactory kapsamlar, ILoggerFactory gu
     private IBrowser? _tarayici;
 
     /// <summary>Sayfa altı (her sayfada): ibare, rapor adı, sayfa numarası. Chromium'un kendi sınıfları: pageNumber, totalPages.</summary>
-    private static string Alt(RaporBelgesi b) =>
+    private string Alt(RaporBelgesi b) =>
         "<div style=\"font-family: Segoe UI, Arial, sans-serif; font-size: 7pt; color: #666; width: 100%; padding: 0 10mm; display: flex; justify-content: space-between;\">" +
-        $"<span style=\"color: #c8102e; font-weight: 700;\">{Kacis(Metinler.PartiyeOzel)}</span>" +
+        $"<span style=\"color: {gorunum.Koyu}; font-weight: 700;\">{Kacis(Metinler.PartiyeOzel)}</span>" +
         $"<span>{Kacis(b.Baslik)} · {Kacis(b.UretimMetni)}</span>" +
         "<span>Sayfa <span class=\"pageNumber\"></span> / <span class=\"totalPages\"></span></span></div>";
 

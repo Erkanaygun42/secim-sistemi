@@ -19,6 +19,7 @@ public sealed record KarneSorgusu(string? Ilce, int? Secim, string? OyTuru, stri
         ["toplam-oy"] = KarneSiraAlani.ToplamOy,
         ["dsp-oyu"] = KarneSiraAlani.DspOyu,
         ["dsp-orani"] = KarneSiraAlani.DspOrani,
+        ["puan-farki"] = KarneSiraAlani.PuanFarki,
         ["sinir"] = KarneSiraAlani.Sinir,
     };
 
@@ -57,6 +58,7 @@ public sealed record KarneSonucu(
         KarneSiraAlani.ToplamOy => "toplam oy",
         KarneSiraAlani.DspOyu => "DSP oyu",
         KarneSiraAlani.DspOrani => "DSP oranı",
+        KarneSiraAlani.PuanFarki => "puan farkı",
         KarneSiraAlani.Sinir => "sınır durumu",
         _ => a.ToString(),
     };

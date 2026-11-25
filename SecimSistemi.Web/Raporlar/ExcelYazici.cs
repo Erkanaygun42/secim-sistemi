@@ -4,9 +4,11 @@ namespace SecimSistemi.Web.Raporlar;
 
 /// <summary>
 /// <see cref="RaporBelgesi"/>'ni Excel dosyasına yazar. İlk sayfa "Bilgi": "partiye özel" ibaresi, rapor adı, filtre özeti,
-/// veri kaynağı ve dosyaları, üretim tarihi, notlar. Sonra her tablo ayrı sayfada: sayılar sayı olarak (Excel'de toplanabilir,
+/// veri kaynağı özeti, üretim tarihi, "Bu rapor nasıl okunur" (sütun açıklamaları ve örnekleri), notlar ve en sonda yüklenen
+/// dosyaların tam listesi. Sonra her tablo ayrı sayfada: sayılar sayı olarak (Excel'de toplanabilir,
 /// sıralanabilir), boş değer "—", başlık satırı dondurulmuş ve süzgeçli. Grup satırları (dönem başlıkları) Excel'e yazılmaz;
-/// aynı bilgi "Dönem" sütununda olduğu için süzgeç ve sıralama bozulmaz.
+/// aynı bilgi "Karşılaştırılabilir dönem" sütununda olduğu için süzgeç ve sıralama bozulmaz. Karşılaştırılabilir dönemin
+/// dışında kalan hücreler boş ve gridir.
 /// </summary>
 public static class ExcelYazici
 {
@@ -14,11 +16,12 @@ public static class ExcelYazici
 
     private static readonly XLColor UyariRengi = XLColor.FromHtml("#FFF8E1");
     private static readonly XLColor BaslikRengi = XLColor.FromHtml("#F3F3F3");
+    public static readonly XLColor DonemDisiRengi = XLColor.FromHtml("#E6E6E6");
 
-    public static byte[] Yaz(RaporBelgesi belge)
+    public static byte[] Yaz(RaporBelgesi belge, Gorunum? gorunum = null)
     {
         using var kitap = new XLWorkbook();
-        BilgiSayfasi(kitap, belge);
+        BilgiSayfasi(kitap, belge, gorunum ?? Gorunum.Varsayilan);
         foreach (var bolum in belge.Bolumler)
             TabloSayfasi(kitap, bolum);
 
@@ -27,36 +30,51 @@ public static class ExcelYazici
         return akis.ToArray();
     }
 
-    private static void BilgiSayfasi(XLWorkbook kitap, RaporBelgesi b)
+    private static void BilgiSayfasi(XLWorkbook kitap, RaporBelgesi b, Gorunum gorunum)
     {
         var s = kitap.Worksheets.Add("Bilgi");
         var r = 1;
         s.Cell(r, 1).Value = Metinler.PartiyeOzel;
-        s.Cell(r, 1).Style.Font.SetBold().Font.SetFontColor(XLColor.FromHtml("#C8102E")).Font.SetFontSize(14);
+        s.Range(r, 1, r, 3).Style.Font.SetBold().Font.SetFontSize(14)
+            .Font.SetFontColor(XLColor.FromHtml(Gorunum.BantYazisi)).Fill.SetBackgroundColor(XLColor.FromHtml(gorunum.AnaRenk));
         r += 2;
 
-        void Satir(string ad, string deger)
+        void Satir(string ad, string deger, string? ucuncu = null)
         {
             s.Cell(r, 1).Value = ad;
             s.Cell(r, 1).Style.Font.SetBold();
             s.Cell(r, 2).Value = deger;
+            if (ucuncu is not null) s.Cell(r, 3).Value = ucuncu;
+            r++;
+        }
+
+        void Baslik(string metin)
+        {
+            r++;
+            s.Cell(r, 1).Value = metin;
+            s.Cell(r, 1).Style.Font.SetBold().Font.SetFontSize(12);
             r++;
         }
 
         Satir("Rapor", b.Baslik);
         Satir("Filtre", b.FiltreOzeti);
-        Satir("Veri kaynağı", Metinler.VeriKaynagi);
+        Satir("Veri kaynağı", b.Kaynaklar.Ozet);
         Satir("Üretim tarihi", b.UretimMetni);
-        r++;
-        Satir("Yüklenen dosyalar", b.Kaynaklar.Count == 0 ? Metinler.Bos : b.Kaynaklar[0]);
-        foreach (var k in b.Kaynaklar.Skip(1)) { s.Cell(r, 2).Value = k; r++; }
-        r++;
-        Satir("Notlar", b.Notlar.Count == 0 ? Metinler.Bos : b.Notlar[0]);
-        foreach (var n in b.Notlar.Skip(1)) { s.Cell(r, 2).Value = n; r++; }
 
-        s.Column(1).Width = 20;
-        s.Column(2).Width = 120;
-        s.Column(2).Style.Alignment.SetWrapText();
+        Baslik("Bu rapor nasıl okunur");
+        foreach (var t in b.Okuma) Satir(t.Ad, t.Aciklama, t.Ornek is null ? null : "Örnek: " + t.Ornek);
+
+        Baslik("Notlar");
+        foreach (var n in b.Notlar) { s.Cell(r, 2).Value = n; r++; }
+
+        Baslik("Yüklenen dosyalar");
+        if (b.Kaynaklar.Dosyalar.Count == 0) { s.Cell(r, 2).Value = Metinler.Bos; r++; }
+        foreach (var k in b.Kaynaklar.Dosyalar) { s.Cell(r, 2).Value = k; r++; }
+
+        s.Column(1).Width = 26;
+        s.Column(2).Width = 90;
+        s.Column(3).Width = 60;
+        s.Columns(1, 3).Style.Alignment.SetWrapText().Alignment.SetVertical(XLAlignmentVerticalValues.Top);
     }
 
     private static void TabloSayfasi(XLWorkbook kitap, TabloBolumu bolum)
@@ -78,11 +96,18 @@ public static class ExcelYazici
         var r = baslikSatiri + 1;
         foreach (var satir in bolum.Satirlar.Where(x => x.Tur != SatirTuru.Grup))
         {
-            for (var c = 0; c < bolum.Sutunlar.Count; c++)
-                Hucre(s.Cell(r, c + 1), bolum.Sutunlar[c].Tur, c < satir.Degerler.Count ? satir.Degerler[c] : null);
-
             var aralik = s.Range(r, 1, r, bolum.Sutunlar.Count);
             if (satir.Tur == SatirTuru.Uyari) aralik.Style.Fill.SetBackgroundColor(UyariRengi);
+            for (var c = 0; c < bolum.Sutunlar.Count; c++)
+            {
+                if (satir.DonemDisiMi(c))
+                {
+                    s.Cell(r, c + 1).Style.Fill.SetBackgroundColor(DonemDisiRengi);
+                    continue;
+                }
+                Hucre(s.Cell(r, c + 1), bolum.Sutunlar[c].Tur, c < satir.Degerler.Count ? satir.Degerler[c] : null);
+            }
+
             if (satir.Tur == SatirTuru.Toplam) aralik.Style.Font.SetBold();
             r++;
         }

@@ -1,24 +1,35 @@
-@* Sınır durumu etiketi; üzerine gelince pay değişimi ve varsa insan kararı görünür. *@
+@* Sınır durumu etiketi. Donem verilirse karşılaştırılabilir dönemin özeti ("Şüpheli (2019)"; uyarı varsa asla "Sabit"),
+   Yillik verilirse yalnızca o seçimin tespiti (sınır geçmişi tablosu). Üzerine gelince açıklama görünür. *@
 
-@if (Durum is null)
+@if (Donem is { } d)
 {
-    <span title="Birim sınır analizinde yok">@Metinler.Bos</span>
-}
-else
-{
-    <MudTooltip Text="@Metinler.SinirAciklamasi(Durum)">
-        <MudChip T="string" Size="Size.Small" Color="@Renk" Variant="@(Durum.Sonuc == SinirDurumu.Sabit && !Durum.Dogrulandi ? Variant.Text : Variant.Outlined)">
-            @Metinler.Sinir(Durum)
+    <MudTooltip Text="@Metinler.SinirAciklamasi(d)">
+        <MudChip T="string" Size="Size.Small" Color="@Renk(d.Durum, d.Dogrulandi)" Variant="@(d.Durum == SinirDurumu.Sabit && !d.Dogrulandi ? Variant.Text : Variant.Outlined)">
+            @Metinler.Sinir(d)
         </MudChip>
     </MudTooltip>
 }
+else if (Yillik is { } y)
+{
+    <MudTooltip Text="@Metinler.SinirAciklamasi(y)">
+        <MudChip T="string" Size="Size.Small" Color="@Renk(y.Sonuc, y.Dogrulandi)" Variant="@(y.Sonuc == SinirDurumu.Sabit && !y.Dogrulandi ? Variant.Text : Variant.Outlined)">
+            @Metinler.Sinir(y)
+        </MudChip>
+    </MudTooltip>
+}
+else
+{
+    <span title="Birim sınır analizinde yok">@Metinler.Bos</span>
+}
 
 @code {
-    [Parameter] public BirimYilDurumu? Durum { get; set; }
+    [Parameter] public DonemSiniri? Donem { get; set; }
+    [Parameter] public BirimYilDurumu? Yillik { get; set; }
 
-    private Color Renk => Durum!.Dogrulandi ? Color.Success : Durum.Sonuc switch
+    private static Color Renk(SinirDurumu d, bool dogrulandi) => d switch
     {
         SinirDurumu.Supheli => Color.Warning,
+        _ when dogrulandi => Color.Success,
         SinirDurumu.SiniriDegisti => Color.Error,
         SinirDurumu.Yeni => Color.Info,
         _ => Color.Default,

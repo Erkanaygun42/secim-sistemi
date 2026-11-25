@@ -1,35 +1,33 @@
 using SecimSistemi.Data.Analiz;
-using SecimSistemi.Domain;
 using SecimSistemi.Domain.Analiz;
+using Soz = SecimSistemi.Web.Raporlar.SutunSozlugu;
 
 namespace SecimSistemi.Web.Raporlar;
 
 /// <summary>
 /// Sayfalardaki raporları <see cref="RaporBelgesi"/>'ne çevirir. Satır sırası ve değerler ekrandakiyle aynıdır;
-/// ekrandaki açıklama balonlarının yerine "Uyarı" sütunu kullanılır (dosyada balon yok).
+/// ekrandaki açıklama balonlarının yerine "Uyarı" sütunu kullanılır (dosyada balon yok). Sütun açıklamaları
+/// <see cref="SutunSozlugu"/>'nden gelir ve PDF'te "Bu rapor nasıl okunur" bölümünü oluşturur.
 /// </summary>
 public static class RaporBelgeleri
 {
-    // Rapora özel notlar; sayfalar da aynı metinleri gösterir.
+    // Rapora özel genel notlar (sütun açıklamaları sözlükte); sayfalar da aynı metinleri gösterir.
     public static readonly string[] KarneNotlari =
     [
-        "Toplam oy = parti ve bağımsız aday oylarının toplamı (YSK sandık dosyalarında geçerli oy sütunu yok). Oran yüzde olarak verilir.",
         "\"—\": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.",
-        "Dönem: o seçime göre karşılaştırılabilir dönem (son sınır değişikliğinden o seçime). Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.",
+        "Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.",
     ];
 
     public static readonly string[] MahalleNotlari =
     [
-        "Puan farkı: DSP oranının bir önceki yerel seçime göre farkı, yüzde puan. Sınırın değiştiği seçimde bu fark aynı toprağı göstermez.",
         "\"—\": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.",
         "Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.",
     ];
 
     public static readonly string[] ErimeNotlari =
     [
-        "Korunma = son oran ÷ taban oranı (1 = oran korundu). Beklenen oy = taban oranı × son seçimdeki toplam oy. Kayıp oy = beklenen − gerçek; eksi değer, DSP'nin tabanın üstünde oy aldığını gösterir.",
+        "Taban: her mahallenin kendi karşılaştırılabilir döneminin ilk seçimi. İlçe tablosunda taban 2009'dur.",
         "Son seçim: o seride DSP'nin kendi listesiyle pusulada olduğu en son yerel seçim.",
-        "Toplam oy = parti ve bağımsız aday oylarının toplamı. Oranlar yüzde, puan farkı yüzde puandır.",
     ];
 
     /// <summary>Her raporun sonundaki ortak notlar: veri kaynağı, eşikler, eşleme sınırı.</summary>
@@ -41,24 +39,33 @@ public static class RaporBelgeleri
         return notlar;
     }
 
-    private static string Donem(int? baslangic, int yil) =>
-        baslangic is not { } d ? Metinler.Bos : d == yil ? $"{d}" : $"{d}–{yil}";
+    /// <summary>Karnede puan farkı sütununun başlığı: satırların çoğunun karşılaştırıldığı önceki seçime göre.</summary>
+    public static string PuanFarkiBasligi(Karne k) =>
+        k.Satirlar.Where(s => s.OncekiYil is not null).GroupBy(s => s.OncekiYil!.Value).MaxBy(g => g.Count())?.Key is { } y
+            ? $"Puan farkı ({Metinler.Yonelme(y)} göre)"
+            : "Puan farkı (önceki seçime göre)";
+
+    /// <summary>Puan farkının uyarısı: sınır tam bu seçimde değiştiyse.</summary>
+    public static string? PuanUyarisi(int yil, int? oncekiYil, bool kesintili) =>
+        kesintili ? $"Sınır {yil} seçiminde değişti; {oncekiYil} ile puan farkı aynı toprağı göstermez." : null;
 
     // ---------------- Mahalle karnesi ----------------
 
-    public static RaporBelgesi Karne(KarneSonucu sonuc, IReadOnlyList<string> kaynaklar, DateTime uretim)
+    public static RaporBelgesi Karne(KarneSonucu sonuc, KaynakListesi kaynaklar, DateTime uretim)
     {
         var k = sonuc.Karne ?? throw new ArgumentException("Karne boş.", nameof(sonuc));
         Sutun[] sutunlar =
         [
-            new("#", HucreTuru.Kod), new("Kod", HucreTuru.Kod), new("Mahalle/köy"), new("Sandık", HucreTuru.Tamsayi),
-            new("Toplam oy", HucreTuru.Tamsayi), new("DSP oyu", HucreTuru.Tamsayi), new("DSP %", HucreTuru.Oran),
-            new("Dönem"), new("Sınır durumu"), new("Uyarı"),
+            new("#", HucreTuru.Kod), new(Soz.Kod, HucreTuru.Kod), new(Soz.Mahalle), new(Soz.Sandik, HucreTuru.Tamsayi),
+            new(Soz.ToplamOy, HucreTuru.Tamsayi), new(Soz.DspOyu, HucreTuru.Tamsayi), new(Soz.DspOrani, HucreTuru.Oran),
+            new(PuanFarkiBasligi(k), HucreTuru.Puan, Soz.PuanFarki),
+            new(Soz.Donem), new(Soz.Sinir), new(Soz.Uyari),
         ];
         var satirlar = k.Satirlar.Select((s, i) => new RaporSatiri(
         [
-            i + 1, s.BirimKod, s.BirimAdi, s.SandikSayisi, s.ToplamOy, s.DspOyu, s.DspOrani,
-            Donem(s.DonemBaslangici, k.Secim.Yil), Metinler.Sinir(s.Sinir), s.Uyari ? Metinler.Uyari(s.Supheliler) : null,
+            i + 1, s.BirimKod, s.BirimAdi, s.SandikSayisi, s.ToplamOy, s.DspOyu, s.DspOrani, s.PuanFarki,
+            s.DonemSiniri?.Donem, Metinler.Sinir(s.DonemSiniri),
+            s.Uyari ? Metinler.Uyari(s.Supheliler) : PuanUyarisi(k.Secim.Yil, s.OncekiYil, s.PuanKesintili),
         ], s.Uyari ? SatirTuru.Uyari : SatirTuru.Normal)).ToList();
 
         var toplamOy = k.Satirlar.Sum(s => s.ToplamOy);
@@ -67,7 +74,7 @@ public static class RaporBelgeleri
         satirlar.Add(new RaporSatiri(
         [
             null, null, "İlçe toplamı", k.Satirlar.Sum(s => s.SandikSayisi), toplamOy, dsp,
-            dsp is null || toplamOy == 0 ? null : 100m * dsp.Value / toplamOy, null, null, null,
+            dsp is null || toplamOy == 0 ? null : 100m * dsp.Value / toplamOy, null, null, null, null,
         ], SatirTuru.Toplam));
 
         var tablo = new TabloBolumu($"{k.Ilce.Ad} · {k.Secim.Yil} · {Metinler.Ad(k.OyTuru)}", "Karne", null, sutunlar, satirlar, []);
@@ -78,40 +85,60 @@ public static class RaporBelgeleri
 
     // ---------------- Mahalle detayı ----------------
 
-    public static RaporBelgesi Mahalle(MahalleDetayi d, IReadOnlyList<string> kaynaklar, DateTime uretim)
+    public static RaporBelgesi Mahalle(MahalleDetayi d, KaynakListesi kaynaklar, DateTime uretim)
     {
         var bolumler = new List<TabloBolumu>();
+
+        // Özet: yıllara göre oran (grafik + verisi), oy türleri yan yana.
+        var turler = d.Satirlar.Select(s => s.OyTuru).Distinct().OrderBy(Metinler.SeriSirasi).ToList();
+        var yillar = d.Satirlar.Select(s => s.Yil).Distinct().Order().ToList();
+        Sutun[] ozetSutunlari =
+        [
+            new(Soz.Yil, HucreTuru.Kod), .. turler.Select(t => new Sutun($"{Metinler.Ad(t)} %", HucreTuru.Oran, Soz.DspOrani)),
+            new(Soz.Donem),
+        ];
+        var ozetSatirlari = yillar.Select(y =>
+        {
+            var disarda = d.Sinir is { } s && y < s.DonemBaslangici;
+            return new RaporSatiri(
+            [
+                y, .. turler.Select(t => (object?)d.Satirlar.FirstOrDefault(x => x.Yil == y && x.OyTuru == t)?.DspOrani),
+                disarda ? "dönem dışı" : d.Sinir?.DonemSiniri(y)?.Donem,
+            ]);
+        }).ToList();
+        bolumler.Add(new TabloBolumu("Yıllara göre DSP oranı", "Özet", null, ozetSutunlari, ozetSatirlari, [],
+            RaporGrafikleri.MahalleOrani(d) is { } g ? [g] : null));
+
         Sutun[] sutunlar =
         [
-            new("Seçim", HucreTuru.Kod), new("Sandık", HucreTuru.Tamsayi), new("Toplam oy", HucreTuru.Tamsayi),
-            new("DSP oyu", HucreTuru.Tamsayi), new("DSP %", HucreTuru.Oran), new("Puan farkı", HucreTuru.Puan),
-            new("Sınır durumu"), new("Uyarı"),
+            new("Seçim", HucreTuru.Kod, Soz.Yil), new(Soz.Sandik, HucreTuru.Tamsayi), new(Soz.ToplamOy, HucreTuru.Tamsayi),
+            new(Soz.DspOyu, HucreTuru.Tamsayi), new(Soz.DspOrani, HucreTuru.Oran), new(Soz.PuanFarki, HucreTuru.Puan),
+            new(Soz.Sinir), new(Soz.Uyari),
         ];
-        foreach (var g in d.Satirlar.GroupBy(x => x.OyTuru).OrderBy(g => g.Key))
+        foreach (var grup in d.Satirlar.GroupBy(x => x.OyTuru).OrderBy(g => Metinler.SeriSirasi(g.Key)))
         {
-            var satirlar = g.OrderBy(x => x.Yil).Select(r =>
+            var satirlar = grup.OrderBy(x => x.Yil).Select(r =>
             {
-                var kesinti = r.Sinir?.Sonuc is SinirDurumu.SiniriDegisti or SinirDurumu.Yeni && r.PuanFarki is not null;
-                string? uyari = kesinti ? $"Sınır {r.Yil} seçiminde değişti; {r.OncekiYil} ile karşılaştırma aynı toprağı göstermez."
-                    : r.Sinir?.Sonuc == SinirDurumu.Supheli ? Metinler.Uyari([r.Sinir]) : null;
+                var uyari = r.DonemSiniri is { UyariVar: true } ds ? Metinler.Uyari(ds.Ilgili) : PuanUyarisi(r.Yil, r.OncekiYil, r.PuanKesintili);
                 return new RaporSatiri(
-                    [r.Yil, r.SandikSayisi, r.ToplamOy, r.DspOyu, r.DspOrani, r.PuanFarki, Metinler.Sinir(r.Sinir), uyari],
-                    r.Sinir?.Sonuc == SinirDurumu.Supheli ? SatirTuru.Uyari : SatirTuru.Normal);
+                    [r.Yil, r.SandikSayisi, r.ToplamOy, r.DspOyu, r.DspOrani, r.PuanFarki, Metinler.Sinir(r.DonemSiniri), uyari],
+                    r.DonemSiniri?.UyariVar == true ? SatirTuru.Uyari : SatirTuru.Normal);
             }).ToList();
-            bolumler.Add(new TabloBolumu(Metinler.Ad(g.Key), Metinler.Ad(g.Key), null, sutunlar, satirlar, []));
+            bolumler.Add(new TabloBolumu(Metinler.Ad(grup.Key), Metinler.Ad(grup.Key), null, sutunlar, satirlar, []));
         }
 
-        if (d.Sinir is { } s)
+        if (d.Sinir is { } sg)
         {
             Sutun[] sinirSutunlari =
             [
-                new("Seçim", HucreTuru.Kod), new("İlçe meclis oyundaki pay %", HucreTuru.Oran), new("Pay değişimi %", HucreTuru.Puan),
-                new("Otomatik tespit"), new("Sonuç"), new("İnsan kararı"),
+                new("Seçim", HucreTuru.Kod, Soz.Yil), new($"{Soz.Pay.Ad} %", HucreTuru.Oran, Soz.Pay), new($"{Soz.PayDegisimi.Ad} %", HucreTuru.Puan, Soz.PayDegisimi),
+                new(Soz.OtomatikTespit), new(Soz.YillikSonuc), new(Soz.InsanKarari),
             ];
-            var satirlar = s.Yillar.Select(y => new RaporSatiri(
+            var satirlar = sg.Yillar.Select(y => new RaporSatiri(
                 [y.Yil, y.Pay * 100, y.PayDegisimi * 100, Metinler.Ad(y.Otomatik), Metinler.Sinir(y), y.Karar],
                 y.Sonuc == SinirDurumu.Supheli ? SatirTuru.Uyari : SatirTuru.Normal)).ToList();
-            bolumler.Add(new TabloBolumu("Sınır geçmişi", "Sınır geçmişi", $"Karşılaştırılabilir dönem: {s.Donem}.", sinirSutunlari, satirlar, []));
+            bolumler.Add(new TabloBolumu("Sınır geçmişi", "Sınır geçmişi",
+                $"Karşılaştırılabilir dönem: {sg.Donem}. Bu tabloda her satır yalnızca o seçimin tespitidir.", sinirSutunlari, satirlar, []));
         }
 
         var ozet = $"{d.Ilce.IlAdi} / {d.Ilce.Ad} · {d.BirimAdi} (kod {d.BirimKod})" + (d.Sinir is { } sd ? $" · karşılaştırılabilir dönem {sd.Donem}" : "");
@@ -121,30 +148,36 @@ public static class RaporBelgeleri
 
     // ---------------- Erime raporu ----------------
 
-    public static RaporBelgesi Erime(ErimeSonucu e, IReadOnlyList<string> kaynaklar, DateTime uretim)
+    /// <summary>Mahalle tablosundaki yıl sütunları: serideki seçim yılları.</summary>
+    public static IReadOnlyList<int> MahalleYillari(ErimeSonucu e) => e.Rapor?.Yillar ?? [];
+
+    public static RaporBelgesi Erime(ErimeSonucu e, KaynakListesi kaynaklar, DateTime uretim)
     {
         var ilce = e.Ilce ?? throw new ArgumentException("İlçe yok.", nameof(e));
         var bolumler = new List<TabloBolumu>();
 
         Sutun[] ilceSutunlari =
         [
-            new("Seri"), new("Yıl", HucreTuru.Kod), new("Toplam oy", HucreTuru.Tamsayi), new("DSP oyu", HucreTuru.Tamsayi),
-            new("DSP %", HucreTuru.Oran), new($"Puan ({ErimeHesabi.TabanYili}'a göre)", HucreTuru.Puan), new("Korunma", HucreTuru.Katsayi),
-            new("Beklenen oy", HucreTuru.Tamsayi), new("Kayıp oy", HucreTuru.Tamsayi),
+            new(Soz.Seri), new(Soz.Yil, HucreTuru.Kod), new($"{Soz.ToplamOy.Ad}", HucreTuru.Tamsayi, Soz.ToplamOy), new(Soz.DspOyu, HucreTuru.Tamsayi),
+            new(Soz.DspOrani, HucreTuru.Oran), new($"Puan ({Metinler.Yonelme(ErimeHesabi.TabanYili)} göre)", HucreTuru.Puan, Soz.PuanTabana),
+            new(Soz.Korunma, HucreTuru.Katsayi), new("Beklenen oy", HucreTuru.Tamsayi, Soz.Beklenen), new("Kayıp oy", HucreTuru.Tamsayi, Soz.Kayip),
         ];
-        var ilceSatirlari = e.IlceErimesi.SelectMany(kv => kv.Value.Select(s => new RaporSatiri(
+        var ilceSatirlari = e.IlceErimesi.OrderBy(kv => Metinler.SeriSirasi(kv.Key)).SelectMany(kv => kv.Value.Select(s => new RaporSatiri(
             [Metinler.Ad(kv.Key), s.Yil, s.ToplamOy, s.DspOyu, s.Oran, s.PuanFarki, s.KorunmaOrani, s.BeklenenOy, s.KayipOy]))).ToList();
         bolumler.Add(new TabloBolumu($"İlçe düzeyi · {ErimeHesabi.TabanYili}'dan bugüne", "İlçe düzeyi",
-            $"{ilce.Ad} ilçesinin tamamı. İlçe sınırı bu dönemde değişmedi.", ilceSutunlari, ilceSatirlari, []));
+            $"{ilce.Ad} ilçesinin tamamı. İlçe sınırı bu dönemde değişmedi.", ilceSutunlari, ilceSatirlari, [],
+            RaporGrafikleri.IlceOrani(e) is { } ig ? [ig] : null));
 
         if (e.Rapor is { } r)
         {
+            var yillar = MahalleYillari(e);
             Sutun[] sutunlar =
             [
-                new("#", HucreTuru.Kod), new("Kod", HucreTuru.Kod), new("Mahalle/köy"), new("Dönem"),
-                new("Taban %", HucreTuru.Oran), new("Son %", HucreTuru.Oran), new("Puan", HucreTuru.Puan), new("Korunma", HucreTuru.Katsayi),
-                new("Taban DSP", HucreTuru.Tamsayi), new("Son DSP", HucreTuru.Tamsayi), new("Son toplam", HucreTuru.Tamsayi),
-                new("Beklenen", HucreTuru.Tamsayi), new("Kayıp", HucreTuru.Tamsayi), new("Kale"), new("Uyarı"),
+                new("#", HucreTuru.Kod), new(Soz.Kod, HucreTuru.Kod), new(Soz.Mahalle), new(Soz.Donem),
+                .. yillar.Select(y => new Sutun($"{y} %", HucreTuru.Oran, Soz.YilOrani)),
+                new(Soz.PuanTabana, HucreTuru.Puan), new(Soz.Korunma, HucreTuru.Katsayi),
+                new(Soz.TabanDsp, HucreTuru.Tamsayi), new(Soz.SonDsp, HucreTuru.Tamsayi), new(Soz.SonToplam, HucreTuru.Tamsayi),
+                new(Soz.Beklenen, HucreTuru.Tamsayi), new(Soz.Kayip, HucreTuru.Tamsayi), new(Soz.Kale), new(Soz.Uyari),
             ];
             var satirlar = new List<RaporSatiri>();
             var sira = 0;
@@ -154,26 +187,31 @@ public static class RaporBelgeleri
                 foreach (var s in g)
                 {
                     var uyari = e.Uyari(s.BirimKod);
+                    var disarda = yillar.Select((y, i) => (y, i)).Where(x => s.DonemDisi(x.y)).Select(x => 4 + x.i).ToHashSet();
                     satirlar.Add(new RaporSatiri(
                     [
-                        ++sira, s.BirimKod, s.BirimAdi, g.Key, s.TabanOrani, s.SonOrani, s.PuanFarki, s.KorunmaOrani,
-                        s.TabanDspOyu, s.SonDspOyu, s.SonToplamOy, s.BeklenenOy, s.KayipOy, s.KaleMi ? "kale" : null, uyari,
-                    ], uyari is null ? SatirTuru.Normal : SatirTuru.Uyari));
+                        ++sira, s.BirimKod, s.BirimAdi, g.Key,
+                        .. yillar.Select(y => s.DonemDisi(y) ? null : (object?)s.YillikOranlar.GetValueOrDefault(y)),
+                        s.PuanFarki, s.KorunmaOrani, s.TabanDspOyu, s.SonDspOyu, s.SonToplamOy, s.BeklenenOy, s.KayipOy,
+                        s.KaleMi ? "evet" : null, uyari,
+                    ], uyari is null ? SatirTuru.Normal : SatirTuru.Uyari, disarda.Count == 0 ? null : disarda));
                 }
             }
             var notlar = r.Satirlar.Where(s => s.Not is not null).GroupBy(s => s.Not!).Select(g => $"Not ({g.Count()} birim): {g.Key}").ToList();
             bolumler.Add(new TabloBolumu($"Mahalle düzeyi · {Metinler.Ad(e.OyTuru)} · son seçim {r.SonYil?.ToString() ?? Metinler.Bos}",
                 "Mahalle düzeyi",
-                "Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir. Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce).",
-                sutunlar, satirlar, notlar));
+                "Her birimin tabanı kendi karşılaştırılabilir döneminin ilk seçimidir. Sıra: dönem (en uzun önce), sonra kayıp oy (en büyük önce). " +
+                "Gri ve boş hücre: o yıl mahallenin karşılaştırılabilir döneminin dışında.",
+                sutunlar, satirlar, notlar,
+                RaporGrafikleri.EnCokKaybeden(e) is { } kg ? [kg] : null));
         }
 
-        var yillar = e.Raporlar.Values.SelectMany(x => x.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();
-        Sutun[] kaleSutunlari = [new("Seri"), .. yillar.Select(y => new Sutun(y.ToString(Metinler.Turkce), HucreTuru.Oran))];
-        var kaleSatirlari = e.Raporlar.Select(kv => new RaporSatiri(
-            [Metinler.Ad(kv.Key), .. yillar.Select(y => (object?)kv.Value.KaleOrtalamalari.FirstOrDefault(k => k.Yil == y)?.Oran)])).ToList();
-        bolumler.Add(new TabloBolumu($"{ErimeHesabi.TabanYili} kaleleri", "Kaleler",
-            $"{e.KaleOzeti} · Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde.", kaleSutunlari, kaleSatirlari, []));
+        var kaleYillari = e.Raporlar.Values.SelectMany(x => x.KaleOrtalamalari.Select(k => k.Yil)).Distinct().Order().ToList();
+        Sutun[] kaleSutunlari = [new(Soz.Seri), .. kaleYillari.Select(y => new Sutun($"{y} %", HucreTuru.Oran, Soz.KaleOrani))];
+        var kaleSatirlari = e.Raporlar.OrderBy(kv => Metinler.SeriSirasi(kv.Key)).Select(kv => new RaporSatiri(
+            [Metinler.Ad(kv.Key), .. kaleYillari.Select(y => (object?)kv.Value.KaleOrtalamalari.FirstOrDefault(k => k.Yil == y)?.Oran)])).ToList();
+        bolumler.Add(new TabloBolumu($"{ErimeHesabi.TabanYili} kaleleri", "2009 kaleleri",
+            $"{e.KaleOzeti}. Grubun ağırlıklı oranı (grubun DSP oyu ÷ grubun toplam oyu), yüzde.", kaleSutunlari, kaleSatirlari, []));
 
         return new RaporBelgesi("Erime raporu", e.FiltreOzeti, kaynaklar, uretim, bolumler,
             [.. ErimeNotlari, .. OrtakNotlar(e.Sinir?.Esikler)], $"erime_{ilce.Kod}_{Metinler.Kod(e.OyTuru)}");

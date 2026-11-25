@@ -174,4 +174,21 @@ public class ErimeHesabiTestleri
         Assert.Equal(2, r.Satirlar.Count); // yalnızca başkanlık satırları
         Assert.Equal(1m, r.KaleOrtalamalari.Single().Oran);
     }
+
+    [Fact]
+    public void YillikOranlar_DonemDisiDahilHerSecim_YillarRapordan()
+    {
+        var r = ErimeHesabi.Hesapla(
+            [K(1, 2009, 100, 10), K(1, 2014, 100, null), K(1, 2019, 200, 4), K(2, 2019, 100, 1), K(2, 2024, 100, 2), K(1, 2024, 100, 1)],
+            Meclis, [], new Dictionary<int, int> { [2] = 2019 });
+
+        Assert.Equal([2009, 2014, 2019, 2024], r.Yillar);
+        var b1 = r.Satirlar.Single(s => s.BirimKod == 1);
+        Assert.Equal([2009, 2014, 2019, 2024], b1.YillikOranlar.Keys);
+        Assert.Equal([10m, null, 2m, 1m], b1.YillikOranlar.Values); // 2014: DSP pusulada değil → boş
+        var b2 = r.Satirlar.Single(s => s.BirimKod == 2);
+        Assert.Equal([2019, 2024], b2.YillikOranlar.Keys);       // 2009'da birim yok
+        Assert.True(b2.DonemDisi(2014));
+        Assert.False(b2.DonemDisi(2019));
+    }
 }

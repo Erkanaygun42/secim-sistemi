@@ -176,12 +176,16 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   bütün oy türlerinde aynıdır.
 - **Gerekçe:** 2014 karnesinde 2019'daki bir sınır değişikliği önemli değildir; 2024 karnesinde 2019 şüphesi önemlidir.
 - **Esenyurt sonucu (2024):** 3 birim uyarılı: Akçaburgaz, Namık Kemal, Yeşilkent.
+  **Değişti (2026-11-25):** "Sınır durumu" sütunu artık yalnızca o yılı değil dönemi gösterir; "Dönem" sütununun adı
+  "Karşılaştırılabilir dönem" oldu, bkz. K25.
 
 ### K21. Karne sıralaması
 - **Karar:** Boş değerler (DSP pusulada değil, sınır durumu yok) iki yönde de en sondadır. Eşitlikte ad (Türkçe alfabe),
   sonra kod. Sınır sütununda artan sıra önce dikkat isteyenleri getirir: şüpheli, dönemi şüpheli, sınırı değişti, yeni, sabit.
   Sıralama sunucuda yapılır (`KarneSiralamasi`); ekran, Excel ve PDF aynı sırayı kullanır.
 - **Gerekçe:** "Pusulada değil" bir değer değildir; en büyük ya da en küçük oranın arasına karışmamalı.
+  **Değişti (2026-11-25):** sınır sırası dönemin sınır özetine göredir (şüpheli, sınırı değişti, yeni, sabit); karneye
+  puan farkı sütunu ve sırası eklendi, bkz. K25 ve K29.
 
 ### K22. Excel ve PDF ortak belge modelinden
 - **Karar:** Raporlar önce `RaporBelgesi`'ne çevrilir (`RaporBelgeleri`), Excel ve PDF bu modelden yazılır. Ekrandaki
@@ -195,6 +199,8 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
   sütunundadır, böylece süzgeç ve sıralama bozulmaz. Beklenen ve kayıp oy tam sayıya, oranlar 4 ondalığa yuvarlanır
   (hesap artıkları dosyaya girmesin; ekranda 2 ondalık).
 - **Gerekçe:** Tek model, iki çıktının birbirinden ayrışmasını önler.
+  **Değişti (2026-11-25):** başlıkta dosya listesi yerine kısa özet var, tam liste sona taşındı; notlara "Bu rapor nasıl
+  okunur" bölümü eklendi; Excel'de "Dönem" sütununun adı "Karşılaştırılabilir dönem" oldu, bkz. K26 ve K28.
 
 ### K23. PDF: HtmlRenderer + Playwright, sunucu kendine istek atmaz
 - **Karar:** `PdfSablonu` (düz HTML, satır içi CSS) HtmlRenderer ile metne çevrilir. Chromium bu metni `SetContentAsync` ile
@@ -208,3 +214,63 @@ Projede alınan kararlar ve gerekçeleri. Yeni karar en alta, ilgili bölüme ek
 - **Karar:** Test projesi Web'e de başvurur: belge modeli, Excel, PDF şablonu ve gerçek PDF üretimi test edilir.
   Gerçek PDF testi Chromium'un kurulu olmasını ister; kurulu değilse kurulum komutunu yazan bir hatayla düşer.
 - **Gerekçe:** Dışa aktarma kuralları (başlık bilgisi, biçimler, sıra) testsiz kalmamalı. Kullanıcı seçimi.
+
+## Sprint 4 geri bildirimi — anlaşılırlık, renk, grafikler (2026-11-25)
+
+### K25. Sınır durumu dönemi gösterir (K20 değişti)
+- **Karar:** Karnede ve mahalle detayında "Sınır durumu", o seçime göre karşılaştırılabilir dönemin tamamının özetidir
+  (`BirimDonemi.DonemSiniri`): dönem içinde insan kararı olmayan şüpheli seçim varsa "Şüpheli (2019)"; yoksa dönem bir
+  kesintiyle başladıysa "Sınırı değişti (2019)" ya da "Yeni (2019)"; yoksa "Sabit". İnsan kararı varsa sonuna ✓ eklenir.
+  Uyarı olan satırda bu sütun hiçbir zaman "Sabit" yazmaz. Yalnızca o seçimin tespiti mahalle detayındaki "Sınır geçmişi"
+  tablosunda ("O seçimdeki sonuç") durur. Sütun adları: "Karşılaştırılabilir dönem" ve (erime) "2009 kalesi".
+- **Gerekçe:** Akçaburgaz 2024'te "Sabit" görünüyor, aynı satırda 2019 şüphesi uyarısı çıkıyordu; okuyan çelişki sanıyordu.
+  Kullanıcı isteği.
+
+### K26. Sütun açıklamaları tek sözlükte
+- **Karar:** Her sütunun adı, sade bir açıklaması ve bir örneği `SutunSozlugu`'nda tutulur. Sayfalarda her sütun başlığının
+  yanında ⓘ vardır (üzerine gelince açıklama ve örnek). PDF'te "Bu rapor nasıl okunur" bölümü ve Excel'in Bilgi sayfası
+  aynı sözlükten, rapordaki sütunların sırasıyla, her sütun bir kez yazılır. Genel notlar ayrıca kalır.
+- **Gerekçe:** Açıklama tek yerde değişir; ekran, PDF ve Excel birbirinden ayrışmaz. Kullanıcı isteği.
+
+### K27. Ana renk tek ayarda: DSP logosundaki mavi
+- **Karar:** `appsettings.json` → `Gorunum:AnaRenk` (varsayılan `#21bcec`, DSP logosunun baskı sürümünden ölçüldü).
+  Bant ("partiye özel"), üst çubuğun alt çizgisi, PDF başlığı ve Excel'deki ibare ile grafiklerin ilk serisi bu rengi kullanır.
+  Logo mavisi açık bir ton: beyaz üzerinde kontrastı 2,2:1, yazı için okunmaz. Bu yüzden butonlar, bağlantılar ve başlık
+  yazıları ana rengin koyulaştırılmış tonunu kullanır (aynı ton, beyaz üzerinde en az 5,5:1); bu ton ana renkten hesaplanır,
+  ayrıca ayarlanmaz. Bant yazısı koyu lacivert. Üst çubuk beyaz, solda yatay DSP logosu (`wwwroot/img`); PDF'te logo
+  derlemeye gömülüdür (sunucuya istek atılmaz). Dikey logo da `wwwroot/img`'de, henüz kullanılmıyor.
+- **Grafik renkleri:** logo mavisi, turuncu, mor, sarı; sıra sabit ve renk seriyi izler (meclis her zaman 1. renk).
+  Renk körlüğü denetiminden geçti. Logo mavisi ve turuncu beyaz zeminde 3:1'in altında kaldığı için her grafikte değer
+  etiketleri ve altında tablo vardır; seriler renkten başka işaret biçimiyle de ayrılır (daire, kare, eşkenar dörtgen).
+- **Gerekçe:** Kullanıcı parti rengini istedi ve tonu sonradan tek yerden değiştirebilmek istedi. Kırmızı (eski ana renk)
+  kaldırıldı.
+
+### K28. Başlıkta kaynak özeti, dosya listesi sonda (K22 değişti)
+- **Karar:** PDF ve Excel başlığında yalnızca "YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 12 dosya · son yükleme
+  3 Kasım 2026" yazar. Yüklenen dosyaların tam listesi en sondadır (PDF: notlardan sonra; Excel: Bilgi sayfasının sonu).
+- **Gerekçe:** 12 dosyalık liste başlığı kalabalıklaştırıyordu. Kullanıcı isteği.
+
+### K29. Karnede önceki seçime göre puan farkı
+- **Karar:** Karneye "Puan farkı (2019'a göre)" sütunu eklendi: DSP oranının bir önceki yerel seçime göre farkı
+  (SecimDegisimi görünümü). Sınır tam bu seçimde değiştiyse değer soluk ve ⚠ işaretli, dosyada "Uyarı" sütununda yazılı.
+  Önceki seçimde birim yoksa boş. Sütun sıralanabilir (`sirala=puan-farki`).
+- **Gerekçe:** Karne tek seçimi gösteriyordu; değişimi görmek için mahalle detayına girmek gerekiyordu. Kullanıcı isteği.
+
+### K30. Erime mahalle tablosunda yıllar yan yana
+- **Karar:** Mahalle tablosunda serideki her seçimin oranı (2009, 2014, 2019, 2024) yan yana gösterilir. Mahallenin
+  karşılaştırılabilir döneminin dışındaki yıllar boş ve gridir (sayfa, Excel, PDF); değer bilinse de yazılmaz.
+  "Taban %" ve "Son %" sütunları kaldırıldı: taban ilk dolu yıl, son ise son yıl sütunudur.
+- **Gerekçe:** Erimenin yolu (bir anda mı, yavaş mı) görünür. Dönem dışı değer, aynı toprağı göstermediği için yanıltır.
+  Kullanıcı isteği.
+
+### K31. Grafikler sunucuda SVG
+- **Karar:** Grafikler (`SvgCizici`) sunucuda SVG metni olarak çizilir; sayfa ve PDF aynı çizimi kullanır, JavaScript ya da
+  ek paket yoktur. Üç grafik: erime sayfasında ilçe düzeyinde yıllara göre oran (seri başına bir çizgi) ve seçili seride
+  en çok oy kaybeden 10 mahalle (çubuk); mahalle detayında yıllara göre oran (oy türü başına bir çizgi).
+  Boş değer (DSP pusulada değil) çizgide boşluktur. Mahalle grafiğinde dönem dışı yıllar gri bantta ve soluk; çizgi dönem
+  sınırında kesilir. En çok kaybedenler grafiğinde her mahalle kendi dönemine göredir; dönem etiketin yanında yazılır,
+  şüpheli mahallede ⚠ vardır, kaybı olmayanlar girmez. Her grafiğin altında verisini gösteren tablo vardır; Excel'de grafik
+  yoktur, tablo vardır.
+- **Gerekçe:** PDF sunucuda basıldığı için grafik de sunucuda çizilmeli; JavaScript grafik kütüphanesi PDF'te ayrıca
+  beklenmeyi gerektirirdi. Farklı dönemler aynı grafikte K6/K14 gereği yan yana sıralanamaz sayılabilirdi; kullanıcı
+  "en çok kaybeden 10 mahalle" istediği için birlikte gösterilir ama dönem her çubuğun etiketindedir.

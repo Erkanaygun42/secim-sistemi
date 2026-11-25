@@ -75,4 +75,7 @@ Referanslar: Data → Domain; Importer → Data; Web → Data; Tests → Domain,
 - Sprint 3 (mahalle analizi, erime raporu) tamam. Esenyurt'ta 2014–2019 arasında kurulan 23 mahallenin eşlemesi onay bekliyor; o zamana kadar her mahalle ayrı birim (docs/kararlar.md K6).
 - Sprint 4 (sayfalar, Excel ve PDF) tamam: `/karne`, `/mahalle/{ilçe}/{kod}`, `/erime`; dışa aktarma `/disa-aktar/{karne|mahalle|erime}.{xlsx|pdf}`.
   Web Sprint 7'ye kadar yalnızca localhost'tan açılır (K16). Sınır kararı düzeltme ekranı Sprint 7'ye ertelendi (K17).
+- Sprint 4 geri bildirimi uygulandı (K25–K31): sınır durumu dönemi gösterir, sütun açıklamaları `SutunSozlugu`'nda
+  (sayfada ⓘ, PDF'te "Bu rapor nasıl okunur"), grafikler sunucuda SVG (`SvgCizici`).
+- Ana renk tek ayarda: `appsettings.json` → `Gorunum:AnaRenk` (DSP logo mavisi `#21bcec`); yazı tonu bundan hesaplanır.
 - Sıradaki: Sprint 5 (yapım programına bakın). Harita Sprint 6'da.

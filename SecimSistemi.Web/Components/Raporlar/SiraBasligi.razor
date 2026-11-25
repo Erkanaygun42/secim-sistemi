@@ -1,23 +1,25 @@
 @* Sıralanabilir tablo başlığı. Tıklanınca adresteki "sirala" ve "yon" değişir; aynı sütuna ikinci tıklama yönü çevirir.
-   Yeni sütunda sayılar büyükten küçüğe, metinler A'dan Z'ye başlar. *@
+   Yeni sütunda sayılar büyükten küçüğe, metinler A'dan Z'ye başlar. ⓘ ile açıklama (SutunSozlugu). *@
 @inject NavigationManager Nav
 
 <th class="@(Sag ? "sayi" : "")">
-    <a class="sira-basligi" href="@Adres" title="@($"{Baslik} sütununa göre sırala")">
-        @Baslik
+    <a class="sira-basligi" href="@Adres" title="@($"{Metin} sütununa göre sırala")">
+        @Metin
         @if (Secili)
         {
             <MudIcon Icon="@(Azalan ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)" Size="Size.Small" />
         }
-    </a>
+    </a><Ipucu Tanim="Tanim" />
 </th>
 
 @code {
-    [Parameter, EditorRequired] public string Baslik { get; set; } = "";
+    [Parameter] public string? Baslik { get; set; }
+    [Parameter] public SutunTanimi? Tanim { get; set; }
     [Parameter, EditorRequired] public KarneSiraAlani Alan { get; set; }
     [Parameter, EditorRequired] public KarneSonucu Sonuc { get; set; } = default!;
     [Parameter] public bool Sag { get; set; }
 
+    private string Metin => Baslik ?? Tanim?.Ad ?? "";
     private bool Secili => Sonuc.Alan == Alan;
     private bool Azalan => Sonuc.Azalan;
 

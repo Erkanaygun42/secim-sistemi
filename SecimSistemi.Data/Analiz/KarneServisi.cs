@@ -9,14 +9,23 @@ public sealed record IlceSecenegi(int Id, string Kod, string Ad, string IlAdi);
 public sealed record SecimSecenegi(int Id, int Yil, DateOnly Tarih, string Ad, SecimTuru Tur);
 
 /// <summary>Karnede bir birimin bir seçim ve oy türündeki satırı.</summary>
-/// <param name="Sinir">Birimin o seçimdeki sınır durumu; birim sınır analizinde yoksa (son seçimde yok ya da seçim yerel değil) boş.</param>
-/// <param name="DonemBaslangici">O seçime göre karşılaştırılabilir dönemin başı (<see cref="BirimDonemi.DonemBaslangiciYil"/>).</param>
-/// <param name="Supheliler">O seçime göre dönem içindeki şüpheli seçimler; doluysa satırda uyarı gösterilir.</param>
+/// <param name="Sinir">Birimin yalnızca o seçimdeki sınır tespiti; birim sınır analizinde yoksa (son seçimde yok ya da seçim yerel değil) boş.</param>
+/// <param name="DonemSiniri">O seçime göre karşılaştırılabilir dönemin sınır özeti (<see cref="BirimDonemi.DonemSiniri"/>); ekranda bu gösterilir.</param>
+/// <param name="OncekiYil">Puan farkının karşılaştırıldığı önceki yerel seçim; birim o seçimde yoksa boş.</param>
+/// <param name="PuanFarki">DSP oranının önceki yerel seçime göre farkı, yüzde puan (SecimDegisimi görünümü).</param>
 public sealed record KarneSatiri(
     int BirimKod, string BirimAdi, int SandikSayisi, long ToplamOy, bool PusuladaMi, long? DspOyu, decimal? DspOrani,
-    BirimYilDurumu? Sinir, int? DonemBaslangici, IReadOnlyList<BirimYilDurumu> Supheliler)
+    BirimYilDurumu? Sinir, DonemSiniri? DonemSiniri, int? OncekiYil = null, decimal? PuanFarki = null)
 {
-    public bool Uyari => Supheliler.Count > 0;
+    public int? DonemBaslangici => DonemSiniri?.DonemBaslangici;
+
+    /// <summary>O seçime göre dönem içindeki şüpheli seçimler; doluysa satırda uyarı gösterilir.</summary>
+    public IReadOnlyList<BirimYilDurumu> Supheliler => DonemSiniri is { UyariVar: true } d ? d.Ilgili : [];
+
+    public bool Uyari => DonemSiniri?.UyariVar == true;
+
+    /// <summary>Sınır tam bu seçimde değiştiği için puan farkı aynı toprağı karşılaştırmıyor.</summary>
+    public bool PuanKesintili => PuanFarki is not null && DonemSiniri?.BuSecimdeKesildi == true;
 }
 
 public sealed record Karne(IlceSecenegi Ilce, SecimSecenegi Secim, OyTuru OyTuru, SinirEsikleri Esikler, IReadOnlyList<KarneSatiri> Satirlar);
@@ -25,7 +34,11 @@ public sealed record Karne(IlceSecenegi Ilce, SecimSecenegi Secim, OyTuru OyTuru
 /// <param name="PuanFarki">Önceki yerel seçime göre oran farkı (yüzde puan), SecimDegisimi görünümünden.</param>
 public sealed record MahalleSecimSatiri(
     int SecimId, int Yil, OyTuru OyTuru, int SandikSayisi, long ToplamOy, bool PusuladaMi, long? DspOyu, decimal? DspOrani,
-    int? OncekiYil, decimal? PuanFarki, BirimYilDurumu? Sinir);
+    int? OncekiYil, decimal? PuanFarki, BirimYilDurumu? Sinir, DonemSiniri? DonemSiniri = null)
+{
+    /// <summary>Sınır tam bu seçimde değiştiği için puan farkı aynı toprağı karşılaştırmıyor.</summary>
+    public bool PuanKesintili => PuanFarki is not null && DonemSiniri?.BuSecimdeKesildi == true;
+}
 
 public sealed record MahalleDetayi(IlceSecenegi Ilce, int BirimKod, string BirimAdi, BirimDonemi? Sinir, SinirEsikleri Esikler,
     IReadOnlyList<MahalleSecimSatiri> Satirlar);
@@ -82,15 +95,20 @@ public sealed class KarneServisi(SecimDbContext db)
             .Where(k => k.IlceId == ilce.Id && k.SecimId == secim.Id && k.OyTuru == oyTuru)
             .ToListAsync(ct);
 
+        var degisim = (await db.SecimDegisimi.AsNoTracking()
+                .Where(d => d.IlceId == ilce.Id && d.SecimId == secim.Id && d.OyTuru == oyTuru)
+                .Select(d => new { d.BirimKod, d.OncekiYil, d.PuanFarki })
+                .ToListAsync(ct))
+            .ToDictionary(d => d.BirimKod);
+
         var sinir = await new SinirAnaliziServisi(db).HazirlaAsync(ilce.Id, Esikler, ct: ct);
 
         var sonuc = satirlar.Select(k =>
         {
             var birim = sinir.Birim(k.BirimKod);
-            var durum = birim?.Durum(secim.Yil);
+            var d = degisim.GetValueOrDefault(k.BirimKod);
             return new KarneSatiri(k.BirimKod, k.BirimAdi, k.SandikSayisi, k.ToplamOy, k.PusuladaMi, k.DspOyu, k.DspOrani,
-                durum, durum is null ? null : birim!.DonemBaslangiciYil(secim.Yil),
-                durum is null ? [] : birim!.SupheliYillar(secim.Yil));
+                birim?.Durum(secim.Yil), birim?.DonemSiniri(secim.Yil), d?.OncekiYil, d?.PuanFarki);
         });
 
         return new Karne(ilce, secim, oyTuru, Esikler, KarneSiralamasi.Uygula(sonuc, KarneSiraAlani.DspOrani, azalan: true));
@@ -117,7 +135,7 @@ public sealed class KarneServisi(SecimDbContext db)
             {
                 var d = degisim.GetValueOrDefault((k.SecimId, k.OyTuru));
                 return new MahalleSecimSatiri(k.SecimId, k.Yil, k.OyTuru, k.SandikSayisi, k.ToplamOy, k.PusuladaMi, k.DspOyu, k.DspOrani,
-                    d?.OncekiYil, d?.PuanFarki, sinir?.Durum(k.Yil));
+                    d?.OncekiYil, d?.PuanFarki, sinir?.Durum(k.Yil), sinir?.DonemSiniri(k.Yil));
             })
             .ToList();
 

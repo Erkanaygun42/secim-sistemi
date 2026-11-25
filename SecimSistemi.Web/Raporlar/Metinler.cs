@@ -63,6 +63,53 @@ public static class Metinler
         return parcalar.Count == 0 ? Ad(d.Sonuc) : string.Join("; ", parcalar);
     }
 
+    /// <summary>
+    /// Dönemin sınır özeti: "Şüpheli (2019)", "Sınırı değişti (2019) ✓", "Yeni (2019)", "Sabit". Dönem içinde şüphe varsa
+    /// hiçbir zaman "Sabit" yazmaz.
+    /// </summary>
+    public static string Sinir(DonemSiniri? d) => d is null ? Bos
+        : Ad(d.Durum) + (d.Yillar.Count > 0 && d.Durum != SinirDurumu.SonradanKuruldu ? $" ({string.Join(", ", d.Yillar)})" : "")
+          + (d.Dogrulandi ? " ✓" : "");
+
+    /// <summary>Dönem sınır özetinin açıklaması (üzerine gelince görünür).</summary>
+    public static string SinirAciklamasi(DonemSiniri d) => d.Durum switch
+    {
+        SinirDurumu.Supheli => Uyari(d.Ilgili),
+        SinirDurumu.SiniriDegisti =>
+            $"Sınır {d.DonemBaslangici} seçiminde değişti" + Ek(d.Ilgili[0]) + $". Karşılaştırılabilir dönem {d.Donem}; {d.DonemBaslangici} öncesiyle karşılaştırılamaz.",
+        SinirDurumu.Yeni =>
+            $"Mahalle ilk kez {d.DonemBaslangici} seçiminde görünüyor (o seçimde kuruldu ya da bölünerek ayrıldı). Karşılaştırılabilir dönem {d.Donem}.",
+        SinirDurumu.SonradanKuruldu => $"Mahalle {d.Yil} seçiminde henüz yoktu.",
+        _ => $"Karşılaştırılabilir dönem ({d.Donem}) içinde sınır değişikliği bulunmadı" +
+             (d.Dogrulandi ? $"; {string.Join(", ", d.Ilgili.Select(x => x.Yil))} seçimi insan kararıyla doğrulandı ({d.Ilgili[0].Karar})." : "."),
+    };
+
+    private static string Ek(BirimYilDurumu y) =>
+        (y.PayDegisimi is { } p ? $" (ilçe meclis oyundaki pay {Yuzde(p)})" : "") + (y.Dogrulandi ? $", insan kararıyla doğrulandı ({y.Karar})" : "");
+
+    /// <summary>Yılın yönelme eki, okunuşa göre: 2009'a, 2014'e, 2002'ye, 2006'ya, 2010'a, 2020'ye.</summary>
+    public static string Yonelme(int yil)
+    {
+        var ek = (yil % 10) switch
+        {
+            1 or 3 or 4 or 5 or 8 => "e",
+            2 or 7 => "ye",
+            6 => "ya",
+            9 => "a",
+            _ => ((yil / 10) % 10) switch { 1 or 3 or 4 or 6 or 9 => "a", 2 or 5 => "ye", _ => "e" },
+        };
+        return $"{yil}'{ek}";
+    }
+
+    /// <summary>Grafikte oy türünün renk sırası; renk seriyi izler (meclis her zaman 1. renk, ana renk).</summary>
+    public static int SeriSirasi(OyTuru o) => o switch
+    {
+        OyTuru.BelediyeMeclisi => 0,
+        OyTuru.BelediyeBaskani => 1,
+        OyTuru.BuyuksehirBaskani => 2,
+        _ => 3,
+    };
+
     /// <summary>Şüpheli uyarısı: "2019 seçiminde pay +%48 değişti (şüpheli), sınır kararı girilmedi."</summary>
     public static string Uyari(IEnumerable<BirimYilDurumu> supheliler) =>
         string.Join(" ", supheliler.Select(d =>

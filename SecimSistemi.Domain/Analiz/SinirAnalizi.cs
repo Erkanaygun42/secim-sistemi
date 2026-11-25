@@ -82,6 +82,47 @@ public sealed record BirimDonemi(int BirimKod, string BirimAdi, int DonemBaslang
         var baslangic = DonemBaslangiciYil(yil);
         return Yillar.Where(d => d.Yil >= baslangic && d.Yil <= yil && d.Sonuc == SinirDurumu.Supheli).ToList();
     }
+
+    /// <summary>
+    /// <paramref name="yil"/> seçimine göre karşılaştırılabilir dönemin sınır özeti (yalnızca o yılın değil, dönemin):
+    /// dönem içinde şüpheli seçim varsa Şüpheli; yoksa dönem bir "Yeni" ya da "SiniriDegisti" seçiminde başladıysa o durum;
+    /// yoksa Sabit. Birim o yıl analizde yoksa boş.
+    /// </summary>
+    public DonemSiniri? DonemSiniri(int yil)
+    {
+        var d = Durum(yil);
+        if (d is null) return null;
+        if (d.Sonuc == SinirDurumu.SonradanKuruldu) return new DonemSiniri(SinirDurumu.SonradanKuruldu, yil, yil, [d]);
+
+        var baslangic = DonemBaslangiciYil(yil);
+        var supheli = SupheliYillar(yil);
+        if (supheli.Count > 0) return new DonemSiniri(SinirDurumu.Supheli, baslangic, yil, supheli);
+
+        var ilk = Durum(baslangic)!;
+        if (ilk.Sonuc is SinirDurumu.Yeni or SinirDurumu.SiniriDegisti) return new DonemSiniri(ilk.Sonuc, baslangic, yil, [ilk]);
+
+        var dogrulanan = Yillar.Where(x => x.Yil >= baslangic && x.Yil <= yil && x.Dogrulandi).ToList();
+        return new DonemSiniri(SinirDurumu.Sabit, baslangic, yil, dogrulanan);
+    }
+}
+
+/// <summary>Bir birimin bir seçime göre karşılaştırılabilir dönemindeki sınır özeti.</summary>
+/// <param name="Durum">Şüpheli, SiniriDegisti, Yeni, Sabit ya da SonradanKuruldu.</param>
+/// <param name="Ilgili">Durumu belirleyen seçimler: şüpheli seçimler, dönemin başladığı seçim ya da (Sabit'te) insan kararıyla doğrulanan seçimler.</param>
+public sealed record DonemSiniri(SinirDurumu Durum, int DonemBaslangici, int Yil, IReadOnlyList<BirimYilDurumu> Ilgili)
+{
+    /// <summary>Şüpheli değil ve dayandığı seçimlerden biri insan kararıyla doğrulandı.</summary>
+    public bool Dogrulandi => Durum != SinirDurumu.Supheli && Ilgili.Any(d => d.Dogrulandi);
+
+    public bool UyariVar => Durum == SinirDurumu.Supheli;
+
+    /// <summary>Durumu belirleyen yıllar (Sabit'te boş): "Şüpheli (2019)" gibi yazmak için.</summary>
+    public IReadOnlyList<int> Yillar => Durum == SinirDurumu.Sabit ? [] : Ilgili.Select(d => d.Yil).ToList();
+
+    public string Donem => DonemBaslangici == Yil ? $"{Yil}" : $"{DonemBaslangici}–{Yil}";
+
+    /// <summary>Puan farkı <see cref="Yil"/> ile önceki seçimi karşılaştırıyorsa ve sınır tam bu seçimde değiştiyse true.</summary>
+    public bool BuSecimdeKesildi => Durum is SinirDurumu.SiniriDegisti or SinirDurumu.Yeni && DonemBaslangici == Yil;
 }
 
 public sealed record SinirAnaliziSonucu(SinirEsikleri Esikler, IReadOnlyList<int> Yillar, IReadOnlyList<BirimDonemi> Birimler)

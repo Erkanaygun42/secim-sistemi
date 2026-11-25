@@ -73,6 +73,11 @@ public sealed class KarneServisiTestleri : VeritabaniTesti, IDisposable
         Assert.Equal(-0.2m, b.Sinir.PayDegisimi);
         Assert.Equal((SinirDurumu.Yeni, 2014), (c.Sinir!.Sonuc, c.DonemBaslangici));
         Assert.Equal(6.25m, b.DspOrani);
+
+        // Dönemin sınır özeti ve önceki seçime göre puan farkı (SecimDegisimi görünümü).
+        Assert.Equal((SinirDurumu.Supheli, 2009, 1.25m), (b.DonemSiniri!.Durum, b.OncekiYil!.Value, b.PuanFarki!.Value));
+        Assert.Equal((SinirDurumu.SiniriDegisti, true), (a.DonemSiniri!.Durum, a.PuanKesintili));
+        Assert.Equal((SinirDurumu.Yeni, (decimal?)null), (c.DonemSiniri!.Durum, c.PuanFarki)); // önceki seçimde birim yok: fark boş
     }
 
     [Fact]
@@ -100,6 +105,8 @@ public sealed class KarneServisiTestleri : VeritabaniTesti, IDisposable
         var m2014 = d.Satirlar[0];
         Assert.Equal((2009, 1.25m), (m2014.OncekiYil!.Value, m2014.PuanFarki!.Value));
         Assert.Equal(SinirDurumu.Supheli, m2014.Sinir!.Sonuc);
+        Assert.Equal(SinirDurumu.Supheli, m2014.DonemSiniri!.Durum);
+        Assert.Equal(SinirDurumu.Sabit, d.Satirlar[2].DonemSiniri!.Durum);
         Assert.Null(d.Satirlar[1].DspOrani);
         Assert.Equal(SinirDurumu.Sabit, d.Satirlar[2].Sinir!.Sonuc);
         Assert.Equal(2009, d.Sinir!.DonemBaslangici);

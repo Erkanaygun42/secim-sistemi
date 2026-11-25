@@ -21,8 +21,9 @@ public sealed class PdfTestleri : IAsyncDisposable
         // Uygulamadaki servis kümesinin aynısı (HtmlRenderer, Razor bileşen servislerini ister); veritabanı gerekmez.
         var b = WebApplication.CreateBuilder();
         b.Services.AddRazorComponents();
+        b.Services.AddSingleton(Gorunum.Varsayilan);
         _uygulama = b.Build();
-        _pdf = new PdfUretici(_uygulama.Services.GetRequiredService<IServiceScopeFactory>(), NullLoggerFactory.Instance);
+        _pdf = new PdfUretici(_uygulama.Services.GetRequiredService<IServiceScopeFactory>(), NullLoggerFactory.Instance, Gorunum.Varsayilan);
     }
 
     public async ValueTask DisposeAsync()
@@ -32,9 +33,7 @@ public sealed class PdfTestleri : IAsyncDisposable
     }
 
     private static RaporBelgesi Karne() =>
-        RaporBelgeleri.Karne(RaporBelgeleriTestleri.OrnekKarne(),
-            ["2009_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026)", "2024_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026)"],
-            RaporBelgeleriTestleri.Uretim);
+        RaporBelgeleri.Karne(RaporBelgeleriTestleri.OrnekKarne(), RaporBelgeleriTestleri.Kaynaklar, RaporBelgeleriTestleri.Uretim);
 
     [Fact]
     public async Task Sablon_BastaIbareFiltreKaynakVeTarih()
@@ -46,10 +45,26 @@ public sealed class PdfTestleri : IAsyncDisposable
         Assert.True(ibare >= 0 && ibare < tablo, "ibare tablodan önce olmalı");
         Assert.Contains("<h1>Mahalle karnesi</h1>", html);
         Assert.Contains("İSTANBUL / ESENYURT · 2024 Yerel Seçimleri (31 Mart 2024) · Belediye meclisi · sıra: DSP oranı azalan", html);
-        Assert.Contains(Metinler.VeriKaynagi, html);
-        Assert.Contains("Yüklenen dosyalar: 2009_yerel_belediye-meclisi_esenyurt.xlsx (yüklendi 3 Kasım 2026) · 2024_", html);
+        Assert.Contains("YSK Açık Veri Portalı, sandık düzeyi sonuçlar · 2 dosya · son yükleme 3 Kasım 2026", html);
         Assert.Contains("25 Kasım 2026 14:30 (Türkiye saati)", html);
         Assert.Contains(Metinler.EslemeNotu, html);
+        Assert.Contains("<img src=\"data:image/png;base64,", html); // logo gömülü, sunucuya istek yok
+        Assert.Contains($"background: {Gorunum.VarsayilanRenk}", html);
+    }
+
+    [Fact]
+    public async Task Sablon_NasilOkunurVeDosyaListesiSonda()
+    {
+        var html = System.Net.WebUtility.HtmlDecode(await _pdf.HtmlAsync(Karne()));
+
+        var tablo = html.IndexOf("<table class=\"veri\"", StringComparison.Ordinal);
+        var okuma = html.IndexOf("<h2>Bu rapor nasıl okunur</h2>", StringComparison.Ordinal);
+        var notlar = html.IndexOf("<h2>Notlar</h2>", StringComparison.Ordinal);
+        var dosyalar = html.IndexOf("<h2>Yüklenen dosyalar</h2>", StringComparison.Ordinal);
+        Assert.True(tablo < okuma && okuma < notlar && notlar < dosyalar, "sıra: tablo → nasıl okunur → notlar → dosyalar");
+        Assert.True(html.IndexOf("2009_yerel_belediye-meclisi_esenyurt.xlsx", StringComparison.Ordinal) > dosyalar, "dosya adları yalnızca sonda");
+        Assert.Contains("<td>Karşılaştırılabilir dönem</td><td>Mahalle sınırlarının aynı kaldığı dönem.</td>", html);
+        Assert.Contains(SutunSozlugu.Donem.Ornek!, html);
     }
 
     [Fact]
@@ -57,7 +72,7 @@ public sealed class PdfTestleri : IAsyncDisposable
     {
         var html = System.Net.WebUtility.HtmlDecode(await _pdf.HtmlAsync(Karne()));
 
-        Assert.Matches(new Regex("<tr class=\"uyari\">.*?AKÇABURGAZ MAH\\..*?12.274.*?0,32.*?2019 seçiminde", RegexOptions.Singleline), html);
+        Assert.Matches(new Regex("<tr class=\"uyari\">.*?AKÇABURGAZ MAH\\..*?12.274.*?0,32.*?−0,16.*?Şüpheli \\(2019\\).*?2019 seçiminde", RegexOptions.Singleline), html);
         Assert.Matches(new Regex("<tr class=\"toplam\">.*?İlçe toplamı.*?25.078", RegexOptions.Singleline), html);
         Assert.Contains("<th class=\"sayi\">DSP %</th>", html);
     }
@@ -67,12 +82,24 @@ public sealed class PdfTestleri : IAsyncDisposable
     {
         var bolum = new TabloBolumu("T", "T", null, [new("Ad"), new("Oy", HucreTuru.Tamsayi)],
             [new(["Dönem 2009–2024 · 1 birim"], SatirTuru.Grup), new(["A", null])], []);
-        var b = new RaporBelgesi("R", "F", [], RaporBelgeleriTestleri.Uretim, [bolum], [], "r");
+        var b = new RaporBelgesi("R", "F", KaynakListesi.Bos, RaporBelgeleriTestleri.Uretim, [bolum], [], "r");
 
         var html = System.Net.WebUtility.HtmlDecode(await _pdf.HtmlAsync(b));
 
         Assert.Contains("<tr class=\"grup\"><td colspan=\"2\">Dönem 2009–2024 · 1 birim</td></tr>", html);
         Assert.Contains("<td class=\"sayi\">—</td>", html);
+    }
+
+    [Fact]
+    public async Task Sablon_GrafikSvgVeDonemDisiHucre()
+    {
+        var b = RaporBelgeleri.Erime(RaporBelgeleriTestleri.OrnekErime(), KaynakListesi.Bos, RaporBelgeleriTestleri.Uretim);
+
+        var html = System.Net.WebUtility.HtmlDecode(await _pdf.HtmlAsync(b));
+
+        Assert.Equal(2, Regex.Matches(html, "<svg class=\"grafik\"").Count); // ilçe çizgisi + en çok kaybedenler
+        Assert.Contains("<h3>ESENYURT · yıllara göre DSP oranı</h3>", html);
+        Assert.Contains("<td class=\"donem-disi\"></td>", html);
     }
 
     [Theory]
@@ -95,7 +122,7 @@ public sealed class PdfTestleri : IAsyncDisposable
 
         var metin = Encoding.Latin1.GetString(pdf);
         Assert.StartsWith("%PDF-", metin);
-        Assert.Matches(@"/Count 1\b", metin);
+        Assert.Matches(@"/Count [23]\b", metin); // tablo + "Bu rapor nasıl okunur", notlar ve dosya listesi
         Assert.Matches(@"/MediaBox \[0 0 84\d(\.\d+)? 59\d(\.\d+)?\]", metin); // A4 yatay: 842 × 595 pt
     }
 }

@@ -42,44 +42,34 @@ else
         </MudAlert>
     }
 
-    @foreach (var grup in d.Satirlar.GroupBy(x => x.OyTuru).OrderBy(g => g.Key))
+    <GrafikKutusu Grafik="RaporGrafikleri.MahalleOrani(d)" />
+
+    @foreach (var grup in d.Satirlar.GroupBy(x => x.OyTuru).OrderBy(g => Metinler.SeriSirasi(g.Key)))
     {
         <MudText Typo="Typo.h6" Class="mt-4 mb-2">@Metinler.Ad(grup.Key)</MudText>
         <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="mb-2">
             <thead>
                 <tr>
-                    <th>Seçim</th>
-                    <th class="sayi">Sandık</th>
-                    <th class="sayi">Toplam oy</th>
-                    <th class="sayi">DSP oyu</th>
-                    <th class="sayi">DSP %</th>
-                    <th class="sayi">Puan farkı</th>
-                    <th>Sınır durumu</th>
+                    <SutunBasligi Baslik="Seçim" Tanim="SutunSozlugu.Yil" />
+                    <SutunBasligi Tanim="SutunSozlugu.Sandik" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.ToplamOy" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.DspOyu" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.DspOrani" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.PuanFarki" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.Sinir" />
                 </tr>
             </thead>
             <tbody>
                 @foreach (var r in grup.OrderBy(x => x.Yil))
                 {
-                    var kesinti = r.Sinir?.Sonuc is SinirDurumu.SiniriDegisti or SinirDurumu.Yeni;
-                    <tr class="@(r.Sinir?.Sonuc == SinirDurumu.Supheli ? "satir-supheli" : "")">
+                    <tr class="@(r.DonemSiniri?.UyariVar == true ? "satir-supheli" : "")">
                         <td>@r.Yil</td>
                         <td class="sayi">@Metinler.Oy(r.SandikSayisi)</td>
                         <td class="sayi">@Metinler.Oy(r.ToplamOy)</td>
                         <td class="sayi" title="@(r.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oy(r.DspOyu)</td>
                         <td class="sayi" title="@(r.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oran(r.DspOrani)</td>
-                        <td class="sayi">
-                            @if (r.PuanFarki is not null && kesinti)
-                            {
-                                <MudTooltip Text="@($"Sınır {r.Yil} seçiminde değişti; {r.OncekiYil} ile karşılaştırma aynı toprağı göstermez.")">
-                                    <span class="soluk">@Metinler.Puan(r.PuanFarki) ⚠</span>
-                                </MudTooltip>
-                            }
-                            else
-                            {
-                                <span title="@(r.OncekiYil is { } o ? $"{o} seçimine göre, yüzde puan" : null)">@Metinler.Puan(r.PuanFarki)</span>
-                            }
-                        </td>
-                        <td><SinirEtiketi Durum="r.Sinir" /></td>
+                        <td class="sayi"><PuanHucresi Puan="r.PuanFarki" OncekiYil="r.OncekiYil" Uyari="@RaporBelgeleri.PuanUyarisi(r.Yil, r.OncekiYil, r.PuanKesintili)" /></td>
+                        <td><SinirEtiketi Donem="r.DonemSiniri" /></td>
                     </tr>
                 }
             </tbody>
@@ -88,16 +78,17 @@ else
 
     @if (d.Sinir is { } sg)
     {
-        <MudText Typo="Typo.h6" Class="mt-6 mb-2">Sınır geçmişi</MudText>
+        <MudText Typo="Typo.h6" Class="mt-6 mb-1">Sınır geçmişi</MudText>
+        <MudText Typo="Typo.body2" Class="mb-2">Bu tabloda her satır yalnızca o seçimin tespitidir; yukarıdaki tablolar dönemin tamamını gösterir.</MudText>
         <MudSimpleTable Dense="true" Bordered="true">
             <thead>
                 <tr>
-                    <th>Seçim</th>
-                    <th class="sayi">İlçe meclis oyundaki pay</th>
-                    <th class="sayi">Pay değişimi</th>
-                    <th>Otomatik tespit</th>
-                    <th>Sonuç</th>
-                    <th>İnsan kararı</th>
+                    <SutunBasligi Baslik="Seçim" Tanim="SutunSozlugu.Yil" />
+                    <SutunBasligi Tanim="SutunSozlugu.Pay" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.PayDegisimi" Sag="true" />
+                    <SutunBasligi Tanim="SutunSozlugu.OtomatikTespit" />
+                    <SutunBasligi Tanim="SutunSozlugu.YillikSonuc" />
+                    <SutunBasligi Tanim="SutunSozlugu.InsanKarari" />
                 </tr>
             </thead>
             <tbody>
@@ -108,7 +99,7 @@ else
                         <td class="sayi">@(y.Pay is { } p ? "%" + (p * 100).ToString("N2", Metinler.Turkce) : Metinler.Bos)</td>
                         <td class="sayi">@(y.PayDegisimi is { } pd ? Metinler.Yuzde(pd) : Metinler.Bos)</td>
                         <td>@Metinler.Ad(y.Otomatik)</td>
-                        <td><SinirEtiketi Durum="y" /></td>
+                        <td><SinirEtiketi Yillik="y" /></td>
                         <td>@(y.Karar ?? Metinler.Bos)</td>
                     </tr>
                 }

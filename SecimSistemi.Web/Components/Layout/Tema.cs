@@ -1,16 +1,24 @@
 using MudBlazor;
+using SecimSistemi.Web.Raporlar;
 
 namespace SecimSistemi.Web.Components.Layout;
 
-/// <summary>Uygulamanın MudBlazor teması. Renkler sade tutuldu; parti rengi (kırmızı) birincil renk.</summary>
+/// <summary>
+/// Uygulamanın MudBlazor teması; renkler tek ayardan (<see cref="Gorunum"/>, appsettings.json → Gorunum:AnaRenk) türetilir.
+/// Butonlar ve bağlantılar ana rengin koyu tonunu kullanır (logo mavisi beyaz yazıyla okunmaz); üst çubuk beyazdır,
+/// altında ana renkte çizgi ve logo durur.
+/// </summary>
 public static class Tema
 {
-    public static readonly MudTheme Uygulama = new()
+    public static MudTheme Olustur(Gorunum g) => new()
     {
         PaletteLight = new PaletteLight
         {
-            Primary = "#c8102e",
-            AppbarBackground = "#c8102e",
+            Primary = g.Koyu,
+            Secondary = g.AnaRenk,
+            Info = g.Koyu,
+            AppbarBackground = "#ffffff",
+            AppbarText = "#1f1f1f",
         },
     };
 }

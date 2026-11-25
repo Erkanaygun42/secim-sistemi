@@ -9,7 +9,7 @@ public static class Siralama
     public static readonly StringComparer Turkce = StringComparer.Create(new CultureInfo("tr-TR"), ignoreCase: true);
 }
 
-public enum KarneSiraAlani { Kod, Ad, Sandik, ToplamOy, DspOyu, DspOrani, Sinir }
+public enum KarneSiraAlani { Kod, Ad, Sandik, ToplamOy, DspOyu, DspOrani, PuanFarki, Sinir }
 
 /// <summary>
 /// Karne satırlarının sıralaması. Ekranda, Excel'de ve PDF'te aynı sıra kullanılır.
@@ -39,17 +39,21 @@ public static class KarneSiralamasi
         KarneSiraAlani.ToplamOy => s.ToplamOy,
         KarneSiraAlani.DspOyu => s.DspOyu,
         KarneSiraAlani.DspOrani => s.DspOrani,
-        KarneSiraAlani.Sinir => s.Sinir is null ? null : SinirOnceligi(s),
+        KarneSiraAlani.PuanFarki => s.PuanFarki,
+        KarneSiraAlani.Sinir => s.DonemSiniri is null ? null : SinirOnceligi(s.DonemSiniri),
         _ => throw new ArgumentOutOfRangeException(nameof(alan), alan, null),
     };
 
-    /// <summary>Sınır sütununda artan sıra: önce dikkat isteyenler (şüpheli, dönemi şüpheli, sınırı değişmiş, yeni), sonra sabit.</summary>
-    private static int SinirOnceligi(KarneSatiri s) => s.Sinir!.Sonuc switch
+    /// <summary>
+    /// Sınır sütununda artan sıra: önce dikkat isteyenler, dönemin sınır özetine göre (yalnızca o yıl değil):
+    /// dönemi şüpheli, sınırı değişmiş, yeni; sonra sabit.
+    /// </summary>
+    private static int SinirOnceligi(DonemSiniri d) => d.Durum switch
     {
         SinirDurumu.Supheli => 0,
-        _ when s.Uyari => 1,
-        SinirDurumu.SiniriDegisti => 2,
-        SinirDurumu.Yeni => 3,
+        SinirDurumu.SiniriDegisti => 1,
+        SinirDurumu.Yeni => 2,
+        SinirDurumu.Sabit => 3,
         _ => 4,
     };
 }

@@ -41,6 +41,8 @@ public static class DisaAktarmaUclari
     public static void AddDisaAktarma(this IServiceCollection s)
     {
         s.AddSingleton(TimeProvider.System);
+        // Ana renk tek ayarda: appsettings.json → Gorunum:AnaRenk (tema, PDF, Excel ve grafikler buradan okur).
+        s.AddSingleton(sp => Gorunum.Oku(sp.GetRequiredService<IConfiguration>()));
         s.AddScoped<KarneHazirlayici>();
         s.AddScoped<ErimeHazirlayici>();
         s.AddScoped<RaporKaynaklari>();
@@ -51,9 +53,9 @@ public static class DisaAktarmaUclari
     /// <summary><c>GET /disa-aktar/{rapor}.xlsx?...</c> ve <c>.pdf?...</c> (karne, mahalle, erime).</summary>
     public static void MapDisaAktarma(this WebApplication app)
     {
-        app.MapGet("/disa-aktar/{rapor}.xlsx", async (string rapor, HttpRequest istek, BelgeHazirlayici h, CancellationToken ct) =>
+        app.MapGet("/disa-aktar/{rapor}.xlsx", async (string rapor, HttpRequest istek, BelgeHazirlayici h, Gorunum g, CancellationToken ct) =>
             await h.HazirlaAsync(rapor, istek.Query, ct) is { } b
-                ? Results.File(ExcelYazici.Yaz(b), ExcelYazici.IcerikTuru, b.DosyaAdi + ".xlsx")
+                ? Results.File(ExcelYazici.Yaz(b, g), ExcelYazici.IcerikTuru, b.DosyaAdi + ".xlsx")
                 : Results.NotFound("Rapor ya da filtre bulunamadı."));
 
         app.MapGet("/disa-aktar/{rapor}.pdf", async (string rapor, HttpRequest istek, BelgeHazirlayici h, PdfUretici pdf, CancellationToken ct) =>

@@ -1,0 +1,18 @@
+@* Grafik: başlık, açıklama ve SVG. PDF ile aynı çizim (SvgCizici); noktaların ve çubukların üzerine gelince değer görünür. *@
+@inject Gorunum Gorunum
+
+@if (Grafik is not null)
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4 grafik-kutusu">
+        <MudText Typo="Typo.subtitle1"><b>@Grafik.Baslik</b></MudText>
+        @if (Grafik.Aciklama is not null)
+        {
+            <MudText Typo="Typo.body2" Class="mb-2 soluk-yazi">@Grafik.Aciklama</MudText>
+        }
+        @((MarkupString)SvgCizici.Ciz(Grafik, Gorunum))
+    </MudPaper>
+}
+
+@code {
+    [Parameter] public Grafik? Grafik { get; set; }
+}

@@ -1,0 +1,9 @@
+@* Sıralanmayan tablo başlığı; ⓘ ile açıklama. Başlık verilmezse tanımın adı kullanılır. *@
+
+<th class="@(Sag ? "sayi" : "")">@(Baslik ?? Tanim?.Ad)<Ipucu Tanim="Tanim" /></th>
+
+@code {
+    [Parameter] public SutunTanimi? Tanim { get; set; }
+    [Parameter] public string? Baslik { get; set; }
+    [Parameter] public bool Sag { get; set; }
+}

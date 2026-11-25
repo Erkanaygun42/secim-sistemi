@@ -67,18 +67,20 @@ else
         </MudAlert>
     }
 
+    var puanBasligi = RaporBelgeleri.PuanFarkiBasligi(k);
     <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="karne-tablosu">
         <thead>
             <tr>
                 <th class="sayi">#</th>
-                <SiraBasligi Baslik="Kod" Alan="KarneSiraAlani.Kod" Sonuc="_sonuc" />
-                <SiraBasligi Baslik="Mahalle/köy" Alan="KarneSiraAlani.Ad" Sonuc="_sonuc" />
-                <SiraBasligi Baslik="Sandık" Alan="KarneSiraAlani.Sandik" Sonuc="_sonuc" Sag="true" />
-                <SiraBasligi Baslik="Toplam oy" Alan="KarneSiraAlani.ToplamOy" Sonuc="_sonuc" Sag="true" />
-                <SiraBasligi Baslik="DSP oyu" Alan="KarneSiraAlani.DspOyu" Sonuc="_sonuc" Sag="true" />
-                <SiraBasligi Baslik="DSP %" Alan="KarneSiraAlani.DspOrani" Sonuc="_sonuc" Sag="true" />
-                <th>Dönem</th>
-                <SiraBasligi Baslik="Sınır durumu" Alan="KarneSiraAlani.Sinir" Sonuc="_sonuc" />
+                <SiraBasligi Tanim="SutunSozlugu.Kod" Alan="KarneSiraAlani.Kod" Sonuc="_sonuc" />
+                <SiraBasligi Tanim="SutunSozlugu.Mahalle" Alan="KarneSiraAlani.Ad" Sonuc="_sonuc" />
+                <SiraBasligi Tanim="SutunSozlugu.Sandik" Alan="KarneSiraAlani.Sandik" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Tanim="SutunSozlugu.ToplamOy" Alan="KarneSiraAlani.ToplamOy" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Tanim="SutunSozlugu.DspOyu" Alan="KarneSiraAlani.DspOyu" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Tanim="SutunSozlugu.DspOrani" Alan="KarneSiraAlani.DspOrani" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Baslik="@puanBasligi" Tanim="SutunSozlugu.PuanFarki" Alan="KarneSiraAlani.PuanFarki" Sonuc="_sonuc" Sag="true" />
+                <SutunBasligi Tanim="SutunSozlugu.Donem" />
+                <SiraBasligi Tanim="SutunSozlugu.Sinir" Alan="KarneSiraAlani.Sinir" Sonuc="_sonuc" />
             </tr>
         </thead>
         <tbody>
@@ -100,8 +102,9 @@ else
                     <td class="sayi">@Metinler.Oy(s.ToplamOy)</td>
                     <td class="sayi" title="@(s.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oy(s.DspOyu)</td>
                     <td class="sayi" title="@(s.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oran(s.DspOrani)</td>
-                    <td>@(s.DonemBaslangici is { } d ? (d == k.Secim.Yil ? $"{d}" : $"{d}–{k.Secim.Yil}") : Metinler.Bos)</td>
-                    <td><SinirEtiketi Durum="s.Sinir" /></td>
+                    <td class="sayi"><PuanHucresi Puan="s.PuanFarki" OncekiYil="s.OncekiYil" Uyari="@RaporBelgeleri.PuanUyarisi(k.Secim.Yil, s.OncekiYil, s.PuanKesintili)" /></td>
+                    <td>@(s.DonemSiniri?.Donem ?? Metinler.Bos)</td>
+                    <td><SinirEtiketi Donem="s.DonemSiniri" /></td>
                 </tr>
             }
         </tbody>
@@ -114,6 +117,7 @@ else
                 <td class="sayi"><b>@Metinler.Oy(toplamOy)</b></td>
                 <td class="sayi"><b>@Metinler.Oy(dspToplam)</b></td>
                 <td class="sayi"><b>@Metinler.Oran(dspOran)</b></td>
+                <td></td>
                 <td></td>
                 <td></td>
             </tr>

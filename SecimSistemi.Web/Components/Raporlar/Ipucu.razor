@@ -1,0 +1,12 @@
+@* Sütun başlığının yanındaki ⓘ: üzerine gelince sütunun açıklaması ve örneği (SutunSozlugu). *@
+
+@if (Tanim is not null)
+{
+    <MudTooltip Text="@Tanim.Ipucu" Arrow="true" Placement="Placement.Top">
+        <span class="ipucu" tabindex="0" aria-label="@($"{Tanim.Ad}: {Tanim.Ipucu}")">ⓘ</span>
+    </MudTooltip>
+}
+
+@code {
+    [Parameter] public SutunTanimi? Tanim { get; set; }
+}
