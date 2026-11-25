@@ -1,0 +1,19 @@
+@* Rapor sayfalarının altındaki ortak notlar: rapora özel maddeler, veri kaynağı, sınır eşikleri ve eşleme sınırı. *@
+
+<MudPaper Outlined="true" Class="pa-4 mt-4 rapor-notlari">
+    <MudText Typo="Typo.subtitle2" GutterBottom="true">Notlar</MudText>
+    <ul>
+        @ChildContent
+        <li>Veri kaynağı: @Metinler.VeriKaynagi.</li>
+        @if (Esikler is not null)
+        {
+            <li>@Metinler.Esikler(Esikler) ✓ = insan kararıyla doğrulandı.</li>
+        }
+        <li>@Metinler.EslemeNotu</li>
+    </ul>
+</MudPaper>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public SinirEsikleri? Esikler { get; set; }
+}

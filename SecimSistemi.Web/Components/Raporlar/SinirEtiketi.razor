@@ -1,0 +1,26 @@
+@* Sınır durumu etiketi; üzerine gelince pay değişimi ve varsa insan kararı görünür. *@
+
+@if (Durum is null)
+{
+    <span title="Birim sınır analizinde yok">@Metinler.Bos</span>
+}
+else
+{
+    <MudTooltip Text="@Metinler.SinirAciklamasi(Durum)">
+        <MudChip T="string" Size="Size.Small" Color="@Renk" Variant="@(Durum.Sonuc == SinirDurumu.Sabit && !Durum.Dogrulandi ? Variant.Text : Variant.Outlined)">
+            @Metinler.Sinir(Durum)
+        </MudChip>
+    </MudTooltip>
+}
+
+@code {
+    [Parameter] public BirimYilDurumu? Durum { get; set; }
+
+    private Color Renk => Durum!.Dogrulandi ? Color.Success : Durum.Sonuc switch
+    {
+        SinirDurumu.Supheli => Color.Warning,
+        SinirDurumu.SiniriDegisti => Color.Error,
+        SinirDurumu.Yeni => Color.Info,
+        _ => Color.Default,
+    };
+}

@@ -1,0 +1,146 @@
+@page "/karne"
+@inject KarneHazirlayici Hazirlayici
+@inject NavigationManager Nav
+
+<PageTitle>Mahalle karnesi</PageTitle>
+
+<MudText Typo="Typo.h4" GutterBottom="true">Mahalle karnesi</MudText>
+
+@if (_sonuc is null)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" />
+}
+else if (_sonuc.Karne is not { } k)
+{
+    <MudAlert Severity="Severity.Info">Veritabanında karne verisi yok. Önce <code>yukle-hepsi</code> komutuyla YSK dosyalarını yükleyin.</MudAlert>
+}
+else
+{
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <div class="filtreler">
+            <MudSelect T="string" Label="İlçe" Value="@k.Ilce.Kod" ValueChanged="IlceDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var i in _sonuc.Ilceler)
+                {
+                    <MudSelectItem Value="@i.Kod">@i.IlAdi / @i.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="int" Label="Seçim" Value="@k.Secim.Id" ValueChanged="SecimDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var s in _sonuc.Secimler)
+                {
+                    <MudSelectItem Value="@s.Id">@s.Yil · @s.Ad</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSelect T="string" Label="Oy türü" Value="@Metinler.Kod(k.OyTuru)" ValueChanged="OyTuruDegisti" Variant="Variant.Outlined" Margin="Margin.Dense">
+                @foreach (var o in _sonuc.OyTurleri)
+                {
+                    <MudSelectItem Value="@Metinler.Kod(o)">@Metinler.Ad(o)</MudSelectItem>
+                }
+            </MudSelect>
+        </div>
+    </MudPaper>
+
+    var toplamOy = k.Satirlar.Sum(s => s.ToplamOy);
+    var pusulada = k.Satirlar.Where(s => s.PusuladaMi).ToList();
+    long? dspToplam = pusulada.Count == 0 ? null : pusulada.Sum(s => s.DspOyu ?? 0);
+    decimal? dspOran = dspToplam is null || toplamOy == 0 ? null : 100m * dspToplam.Value / toplamOy;
+    var uyarili = k.Satirlar.Count(s => s.Uyari);
+
+    <MudText Class="mb-2">
+        <b>@k.Ilce.Ad</b> · @k.Secim.Yil · @Metinler.Ad(k.OyTuru) · @k.Satirlar.Count birim
+        @if (dspToplam is null)
+        {
+            <span> · @Metinler.PusuladaDegil</span>
+        }
+        else
+        {
+            <span> · DSP @Metinler.Oy(dspToplam) oy (%@Metinler.Oran(dspOran))</span>
+        }
+    </MudText>
+
+    @if (uyarili > 0)
+    {
+        <MudAlert Severity="Severity.Warning" Dense="true" Class="mb-3">
+            @uyarili birimde sınır değişikliği şüphesi var (sarı satırlar). Bu birimlerin yıllar arası karşılaştırması,
+            sınır kararı girilene kadar kesin değildir.
+        </MudAlert>
+    }
+
+    <MudSimpleTable Dense="true" Hover="true" Bordered="true" Class="karne-tablosu">
+        <thead>
+            <tr>
+                <th class="sayi">#</th>
+                <SiraBasligi Baslik="Kod" Alan="KarneSiraAlani.Kod" Sonuc="_sonuc" />
+                <SiraBasligi Baslik="Mahalle/köy" Alan="KarneSiraAlani.Ad" Sonuc="_sonuc" />
+                <SiraBasligi Baslik="Sandık" Alan="KarneSiraAlani.Sandik" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Baslik="Toplam oy" Alan="KarneSiraAlani.ToplamOy" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Baslik="DSP oyu" Alan="KarneSiraAlani.DspOyu" Sonuc="_sonuc" Sag="true" />
+                <SiraBasligi Baslik="DSP %" Alan="KarneSiraAlani.DspOrani" Sonuc="_sonuc" Sag="true" />
+                <th>Dönem</th>
+                <SiraBasligi Baslik="Sınır durumu" Alan="KarneSiraAlani.Sinir" Sonuc="_sonuc" />
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var (s, i) in k.Satirlar.Select((s, i) => (s, i + 1)))
+            {
+                <tr class="@(s.Uyari ? "satir-supheli" : "")">
+                    <td class="sayi">@i</td>
+                    <td>@s.BirimKod</td>
+                    <td>
+                        <MudLink Href="@($"mahalle/{k.Ilce.Kod}/{s.BirimKod}")">@s.BirimAdi</MudLink>
+                        @if (s.Uyari)
+                        {
+                            <MudTooltip Text="@Metinler.Uyari(s.Supheliler)">
+                                <MudIcon Icon="@Icons.Material.Filled.Warning" Color="Color.Warning" Size="Size.Small" Class="ml-1" />
+                            </MudTooltip>
+                        }
+                    </td>
+                    <td class="sayi">@Metinler.Oy(s.SandikSayisi)</td>
+                    <td class="sayi">@Metinler.Oy(s.ToplamOy)</td>
+                    <td class="sayi" title="@(s.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oy(s.DspOyu)</td>
+                    <td class="sayi" title="@(s.PusuladaMi ? null : Metinler.PusuladaDegil)">@Metinler.Oran(s.DspOrani)</td>
+                    <td>@(s.DonemBaslangici is { } d ? (d == k.Secim.Yil ? $"{d}" : $"{d}–{k.Secim.Yil}") : Metinler.Bos)</td>
+                    <td><SinirEtiketi Durum="s.Sinir" /></td>
+                </tr>
+            }
+        </tbody>
+        <tfoot>
+            <tr>
+                <td></td>
+                <td></td>
+                <td><b>İlçe toplamı</b></td>
+                <td class="sayi"><b>@Metinler.Oy(k.Satirlar.Sum(s => s.SandikSayisi))</b></td>
+                <td class="sayi"><b>@Metinler.Oy(toplamOy)</b></td>
+                <td class="sayi"><b>@Metinler.Oy(dspToplam)</b></td>
+                <td class="sayi"><b>@Metinler.Oran(dspOran)</b></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </MudSimpleTable>
+
+    <RaporNotlari Esikler="k.Esikler">
+        <li>Toplam oy = parti ve bağımsız aday oylarının toplamı (YSK sandık dosyalarında geçerli oy sütunu yok). Oran yüzde olarak verilir.</li>
+        <li>"—": DSP o seçimde o oy türünde kendi listesiyle pusulada değildi; oy 0 değil, boştur.</li>
+        <li>Dönem: o seçime göre karşılaştırılabilir dönem (son sınır değişikliğinden o seçime). Sınır durumu belediye meclisi oyundan hesaplanır, bütün oy türlerinde aynıdır.</li>
+    </RaporNotlari>
+}
+
+@code {
+    [SupplyParameterFromQuery(Name = "ilce")] public string? Ilce { get; set; }
+    [SupplyParameterFromQuery(Name = "secim")] public int? Secim { get; set; }
+    [SupplyParameterFromQuery(Name = "oy-turu")] public string? OyTuru { get; set; }
+    [SupplyParameterFromQuery(Name = "sirala")] public string? Sirala { get; set; }
+    [SupplyParameterFromQuery(Name = "yon")] public string? Yon { get; set; }
+
+    private KarneSonucu? _sonuc;
+
+    protected override async Task OnParametersSetAsync() =>
+        _sonuc = await Hazirlayici.HazirlaAsync(new KarneSorgusu(Ilce, Secim, OyTuru, Sirala, Yon));
+
+    private void Git(KarneSorgusu s) => Nav.NavigateTo(Nav.GetUriWithQueryParameters(s.Parametreler()));
+
+    // İlçe değişince seçim ve oy türü varsayılana döner (her ilçede aynı seçimler olmayabilir).
+    private void IlceDegisti(string kod) => Git(_sonuc!.Sorgu with { Ilce = kod, Secim = null, OyTuru = null });
+    private void SecimDegisti(int id) => Git(_sonuc!.Sorgu with { Secim = id });
+    private void OyTuruDegisti(string kod) => Git(_sonuc!.Sorgu with { OyTuru = kod });
+}

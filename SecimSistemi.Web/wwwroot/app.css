@@ -30,3 +30,48 @@ h1:focus {
 .blazor-error-boundary::after {
     content: "Bir hata oluştu.";
 }
+
+/* Rapor tabloları */
+.filtreler {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+}
+
+.filtreler .mud-select {
+    min-width: 220px;
+    max-width: 320px;
+}
+
+.sayi {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.sira-basligi {
+    color: inherit;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.sira-basligi:hover {
+    text-decoration: underline;
+}
+
+.satir-supheli > td {
+    background-color: #fff8e1;
+}
+
+.rapor-notlari ul {
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.rapor-notlari li {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}

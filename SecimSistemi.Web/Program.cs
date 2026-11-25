@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using SecimSistemi.Data;
 using SecimSistemi.Web.Components;
+using SecimSistemi.Web.Raporlar;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,7 @@ var baglanti = builder.Configuration.GetConnectionString("Secim")
 builder.Services.AddDbContextFactory<SecimDbContext>(o => o.UseNpgsql(baglanti));
 
 builder.Services.AddMudServices();
+builder.Services.AddScoped<KarneHazirlayici>();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

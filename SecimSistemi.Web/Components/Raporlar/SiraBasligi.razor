@@ -1,0 +1,34 @@
+@* Sıralanabilir tablo başlığı. Tıklanınca adresteki "sirala" ve "yon" değişir; aynı sütuna ikinci tıklama yönü çevirir.
+   Yeni sütunda sayılar büyükten küçüğe, metinler A'dan Z'ye başlar. *@
+@inject NavigationManager Nav
+
+<th class="@(Sag ? "sayi" : "")">
+    <a class="sira-basligi" href="@Adres" title="@($"{Baslik} sütununa göre sırala")">
+        @Baslik
+        @if (Secili)
+        {
+            <MudIcon Icon="@(Azalan ? Icons.Material.Filled.ArrowDownward : Icons.Material.Filled.ArrowUpward)" Size="Size.Small" />
+        }
+    </a>
+</th>
+
+@code {
+    [Parameter, EditorRequired] public string Baslik { get; set; } = "";
+    [Parameter, EditorRequired] public KarneSiraAlani Alan { get; set; }
+    [Parameter, EditorRequired] public KarneSonucu Sonuc { get; set; } = default!;
+    [Parameter] public bool Sag { get; set; }
+
+    private bool Secili => Sonuc.Alan == Alan;
+    private bool Azalan => Sonuc.Azalan;
+
+    private string Adres
+    {
+        get
+        {
+            var metin = Alan is KarneSiraAlani.Kod or KarneSiraAlani.Ad or KarneSiraAlani.Sinir;
+            var yeniAzalan = Secili ? !Azalan : !metin;
+            var sorgu = Sonuc.Sorgu with { Sirala = KarneSorgusu.Kod(Alan), Yon = yeniAzalan ? "azalan" : "artan" };
+            return Nav.GetUriWithQueryParameters(sorgu.Parametreler());
+        }
+    }
+}
